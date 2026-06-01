@@ -79,10 +79,14 @@ export function Shell({ children, isDev }: ShellProps) {
           router.replace(shellPath, { scroll: false });
         }
       }
+      // Sub-app streams a live balance from its trading socket — update the header.
+      if (e.data?.type === 'SHELL_BALANCE' && typeof e.data.balance === 'string' && typeof e.data.accountId === 'string') {
+        auth.updateBalance(e.data.accountId, e.data.balance);
+      }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [pushToIframe, router, activeApp, pathname]);
+  }, [pushToIframe, router, activeApp, pathname, auth]);
 
   // Re-push whenever auth or theme changes (iframe already mounted)
   useEffect(() => {

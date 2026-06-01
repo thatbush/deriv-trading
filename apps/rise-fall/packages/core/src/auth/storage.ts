@@ -72,6 +72,24 @@ export function getAuthInfo(): AuthInfo | null {
   return authInfo;
 }
 
+/**
+ * Read the stored auth info even if the access token has expired.
+ *
+ * Use this when you intend to refresh: the access token may be expired, but the
+ * refresh_token is typically still valid, so the session can be restored. The
+ * stricter getAuthInfo() returns null on expiry and must NOT be used to decide
+ * whether a refresh is possible (that would drop refreshable sessions on reload).
+ */
+export function getStoredAuthInfoRaw(): AuthInfo | null {
+  const raw = localStorage.getItem(AUTH_INFO_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as AuthInfo;
+  } catch {
+    return null;
+  }
+}
+
 export function clearAuthInfo(): void {
   localStorage.removeItem(AUTH_INFO_KEY);
 }

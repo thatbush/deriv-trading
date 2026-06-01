@@ -10,6 +10,7 @@ import {
   getWebSocketOTP,
   logout as coreLogout,
   getAuthInfo,
+  getStoredAuthInfoRaw,
   getDerivAccounts,
   getActiveLoginId,
   setActiveLoginId,
@@ -62,9 +63,15 @@ export interface UseAuthReturn {
 }
 
 export function useAuth(): UseAuthReturn {
-  const [authState, setAuthState] = useState<AuthState>(() =>
-    typeof window !== 'undefined' && getAuthInfo() ? 'authenticated' : 'unauthenticated'
-  );
+  const [authState, setAuthState] = useState<AuthState>(() => {
+    if (typeof window === 'undefined') return 'unauthenticated';
+    if (getAuthInfo()) return 'authenticated';
+    // Expired access token but a refresh token exists → we'll restore on init.
+    // Start in 'authenticating' so the header doesn't flash logged-out.
+    const raw = getStoredAuthInfoRaw();
+    if (raw?.refresh_token) return 'authenticating';
+    return 'unauthenticated';
+  });
   const [accounts, setAccounts] = useState<DerivAccount[]>(() => {
     if (typeof window === 'undefined') return [];
     return getDerivAccounts() ?? [];
@@ -152,12 +159,20 @@ export function useAuth(): UseAuthReturn {
         return;
       }
 
-      // Check for existing session
-      const storedAuth = getAuthInfo();
+      // Check for existing session. Read the raw (possibly-expired) auth so an
+      // expired access token with a still-valid refresh token can be restored —
+      // getAuthInfo() returns null on expiry and would drop refreshable sessions.
+      const storedAuth = getStoredAuthInfoRaw();
       if (storedAuth) {
         // Check if token is expired
         if (storedAuth.expires_at && Date.now() / 1000 > storedAuth.expires_at) {
           // Try to refresh
+          if (!storedAuth.refresh_token) {
+            clearAllAuthData();
+            setAuthState('unauthenticated');
+            return;
+          }
+          setAuthState('authenticating');
           try {
             const refreshed = await refreshAccessToken(
               storedAuth.refresh_token,
