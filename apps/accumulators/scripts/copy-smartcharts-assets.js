@@ -15,16 +15,22 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const TEMPLATE_ROOT = process.cwd();
-const SOURCE = path.resolve(
-  TEMPLATE_ROOT,
-  './node_modules/@deriv-com/smartcharts-champion/dist'
-);
+const PKG = '@deriv-com/smartcharts-champion/dist';
+
+// npm workspaces hoists to repo root; fallback for local installs inside the app
+const CANDIDATES = [
+  path.resolve(TEMPLATE_ROOT, 'node_modules', PKG),
+  path.resolve(TEMPLATE_ROOT, '../../node_modules', PKG),
+];
+
+const SOURCE = CANDIDATES.find(fs.existsSync) ?? null;
 const DEST = path.join(TEMPLATE_ROOT, 'public');
 
-if (!fs.existsSync(SOURCE)) {
+if (!SOURCE) {
   console.warn(
-    `[copy-smartcharts-assets] skip: source not found at ${SOURCE}. ` +
-      `Run \`npm install\` at the repo root first.`
+    `[copy-smartcharts-assets] skip: source not found at:\n` +
+      CANDIDATES.map(c => `  ${c}`).join('\n') +
+      `\nRun \`npm install\` at the repo root first.`
   );
   process.exit(0);
 }
