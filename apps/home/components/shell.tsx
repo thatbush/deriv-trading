@@ -26,6 +26,11 @@ export function Shell({ children, isDev }: ShellProps) {
     const match = NAV_ITEMS.find((n) => p === n.path || p.startsWith(n.path + '/'));
     return match ? match.path : '/';
   });
+  // Initial iframe src — use the full pathname so reloading /rise-fall/reports loads that page directly
+  const [iframeSrc, setIframeSrc] = useState<string>(() => {
+    if (typeof window === 'undefined') return '/';
+    return window.location.pathname;
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -66,12 +71,13 @@ export function Shell({ children, isDev }: ShellProps) {
       if (e.data?.type === 'PREVIEW_READY') {
         pushToIframe(iframeRef.current);
       }
-      // Sub-app notifies shell of internal navigation so the browser URL stays in sync
+      // Sub-app reports its own full pathname (already includes the base, e.g. /rise-fall/reports)
       if (e.data?.type === 'SHELL_NAVIGATE' && typeof e.data.path === 'string') {
-        const subPath = e.data.path as string;
-        const base = activePath === '/' ? '' : activePath;
-        const fullPath = subPath === '/' ? base || '/' : `${base}${subPath}`;
+        const fullPath = e.data.path as string;
         window.history.replaceState(null, '', fullPath);
+        // Keep nav highlight in sync (match on base segment)
+        const match = NAV_ITEMS.find((n) => n.path !== '/' && (fullPath === n.path || fullPath.startsWith(n.path + '/')));
+        if (match) setActivePath(match.path);
       }
     };
     window.addEventListener('message', handler);
@@ -87,6 +93,7 @@ export function Shell({ children, isDev }: ShellProps) {
     if (path !== activePath) {
       window.history.pushState(null, '', path);
       setActivePath(path);
+      setIframeSrc(path);
     }
     setSidebarOpen(false);
   }, [activePath]);
@@ -179,7 +186,7 @@ export function Shell({ children, isDev }: ShellProps) {
             <iframe
               key={activePath}
               ref={iframeRef}
-              src={activePath}
+              src={iframeSrc}
               className="w-full h-full border-0"
               title={activeItem.label}
             />
