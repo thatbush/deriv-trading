@@ -20,7 +20,12 @@ interface ShellProps {
 
 export function Shell({ children, isDev }: ShellProps) {
   const auth = useAuth();
-  const [activePath, setActivePath] = useState<NavPath>('/');
+  const [activePath, setActivePath] = useState<NavPath>(() => {
+    if (typeof window === 'undefined') return '/';
+    const p = window.location.pathname;
+    const match = NAV_ITEMS.find((n) => p === n.path || p.startsWith(n.path + '/'));
+    return match ? match.path : '/';
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -30,14 +35,13 @@ export function Shell({ children, isDev }: ShellProps) {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
-  // Sync active path from browser URL
+  // Keep activePath in sync with browser URL (handles back/forward)
   useEffect(() => {
     const sync = () => {
       const p = window.location.pathname;
       const match = NAV_ITEMS.find((n) => p === n.path || p.startsWith(n.path + '/'));
       setActivePath(match ? match.path : '/');
     };
-    sync();
     window.addEventListener('popstate', sync);
     return () => window.removeEventListener('popstate', sync);
   }, []);
@@ -56,16 +60,23 @@ export function Shell({ children, isDev }: ShellProps) {
     }, '*');
   }, [theme, auth.wsUrl, auth.activeAccountId, auth.authState, auth.accounts, auth.activeAccount]);
 
-  // When sub-app iframe signals ready, push current state
+  // Listen for messages from sub-app iframes
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (e.data?.type === 'PREVIEW_READY') {
         pushToIframe(iframeRef.current);
       }
+      // Sub-app notifies shell of internal navigation so the browser URL stays in sync
+      if (e.data?.type === 'SHELL_NAVIGATE' && typeof e.data.path === 'string') {
+        const subPath = e.data.path as string;
+        const base = activePath === '/' ? '' : activePath;
+        const fullPath = subPath === '/' ? base || '/' : `${base}${subPath}`;
+        window.history.replaceState(null, '', fullPath);
+      }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [pushToIframe]);
+  }, [pushToIframe, activePath]);
 
   // Re-push whenever auth or theme changes (iframe already loaded)
   useEffect(() => {

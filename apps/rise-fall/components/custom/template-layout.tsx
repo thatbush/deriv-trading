@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/sonner';
 import ViewportScaler from './ViewportScaler';
 import { EnvCheck } from './env-check';
 import { ThemeBridge } from './theme-bridge';
+import { RouterBridge } from './router-bridge';
 
 /**
  * Shared layout wrapper for all template apps.
@@ -33,6 +34,7 @@ export function TemplateLayout({ children }: { children: React.ReactNode }) {
         <ViewportScaler>{children}</ViewportScaler>
       </DerivWSProvider>
       <ThemeBridge />
+      <RouterBridge />
       <Toaster />
       <EnvCheck />
     </Providers>
