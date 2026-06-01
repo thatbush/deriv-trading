@@ -1,11 +1,10 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
   transpilePackages: ['@deriv/core'],
   turbopack: {
     resolveAlias: {
-      '@deriv/core': path.resolve(__dirname, '../accumulators/packages/core/src'),
+      '@deriv/core': '../accumulators/packages/core/src',
     },
   },
   async rewrites() {
