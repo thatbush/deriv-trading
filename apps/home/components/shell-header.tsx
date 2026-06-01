@@ -38,12 +38,11 @@ export function ShellHeader({
   const isAuthenticating = authState === 'authenticating';
 
   return (
-    <header className="flex items-center justify-between px-4 h-14 border-b border-zinc-800 bg-zinc-950 flex-shrink-0 z-30">
-      {/* Left: hamburger + logo */}
+    <header className="flex items-center justify-between px-4 h-14 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex-shrink-0 z-30">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          className="p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           aria-label="Open navigation"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -51,15 +50,13 @@ export function ShellHeader({
           </svg>
         </button>
         <Image src="/bm-logo-w.jpeg" alt="Binarymatix" width={28} height={28} className="rounded object-contain" />
-        <span className="font-semibold text-sm text-white tracking-wide hidden sm:block">Binarymatix</span>
+        <span className="font-semibold text-sm text-zinc-900 dark:text-white tracking-wide hidden sm:block">Binarymatix</span>
       </div>
 
-      {/* Right: theme toggle + auth */}
       <div className="flex items-center gap-2">
-        {/* Theme toggle */}
         <button
           onClick={onThemeToggle}
-          className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          className="p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           aria-label="Toggle theme"
         >
           {theme === 'dark' ? (
@@ -73,18 +70,17 @@ export function ShellHeader({
           )}
         </button>
 
-        {/* Account switcher */}
         {isAuthenticated && activeAccount && (
           <div className="relative">
             <button
               onClick={() => setSwitcherOpen((v) => !v)}
-              className="flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-1.5 hover:bg-zinc-800 transition-colors text-left"
+              className="flex items-center gap-2 rounded-lg border border-zinc-300 dark:border-zinc-700 px-3 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-left"
             >
               <div>
-                <p className={`text-xs font-medium ${activeAccount.account_type === 'demo' ? 'text-orange-400' : 'text-emerald-400'}`}>
+                <p className={`text-xs font-medium ${activeAccount.account_type === 'demo' ? 'text-orange-500 dark:text-orange-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                   {activeAccount.account_type === 'demo' ? 'Demo' : 'Real'}
                 </p>
-                <p className="text-sm font-bold text-white leading-tight">
+                <p className="text-sm font-bold text-zinc-900 dark:text-white leading-tight">
                   {formatBalance(activeAccount.balance)} {activeAccount.currency}
                 </p>
               </div>
@@ -99,19 +95,21 @@ export function ShellHeader({
             {switcherOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setSwitcherOpen(false)} />
-                <div className="absolute right-0 mt-1 w-56 rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl z-50 p-1">
+                <div className="absolute right-0 mt-1 w-56 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-xl z-50 p-1">
                   {accounts.map((account) => (
                     <button
                       key={account.account_id}
                       onClick={() => { onSwitchAccount(account.account_id); setSwitcherOpen(false); }}
                       className={`w-full text-left rounded-md px-3 py-2 transition-colors ${
-                        account.account_id === activeAccount.account_id ? 'bg-zinc-800' : 'hover:bg-zinc-800'
+                        account.account_id === activeAccount.account_id
+                          ? 'bg-zinc-100 dark:bg-zinc-800'
+                          : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'
                       }`}
                     >
-                      <p className={`text-xs font-medium ${account.account_type === 'demo' ? 'text-orange-400' : 'text-emerald-400'}`}>
+                      <p className={`text-xs font-medium ${account.account_type === 'demo' ? 'text-orange-500 dark:text-orange-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                         {account.account_type === 'demo' ? 'Demo account' : 'Real account'}
                       </p>
-                      <p className="text-sm font-bold text-white">
+                      <p className="text-sm font-bold text-zinc-900 dark:text-white">
                         {formatBalance(account.balance)} {account.currency}
                       </p>
                     </button>
@@ -122,11 +120,10 @@ export function ShellHeader({
           </div>
         )}
 
-        {/* Login / logout */}
         {isAuthenticated ? (
           <button
             onClick={onLogout}
-            className="px-3 py-1.5 rounded-lg text-sm bg-red-900/60 text-red-300 hover:bg-red-800 transition-colors"
+            className="px-3 py-1.5 rounded-lg text-sm bg-red-100 dark:bg-red-900/60 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
           >
             Logout
           </button>
@@ -135,14 +132,14 @@ export function ShellHeader({
             <button
               onClick={onLogin}
               disabled={isAuthenticating}
-              className="px-3 py-1.5 rounded-lg text-sm border border-zinc-600 text-zinc-200 hover:bg-zinc-800 transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 rounded-lg text-sm border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
             >
               {isAuthenticating ? 'Logging in…' : 'Log in'}
             </button>
             <button
               onClick={onSignUp}
               disabled={isAuthenticating}
-              className="px-3 py-1.5 rounded-lg text-sm bg-white text-black font-medium hover:bg-zinc-100 transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 rounded-lg text-sm bg-zinc-900 dark:bg-white text-white dark:text-black font-medium hover:bg-zinc-700 dark:hover:bg-zinc-100 transition-colors disabled:opacity-50"
             >
               Sign up
             </button>

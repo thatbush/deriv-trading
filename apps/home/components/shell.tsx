@@ -92,7 +92,7 @@ export function Shell({ children, isDev }: ShellProps) {
   const activeItem = NAV_ITEMS.find((n) => n.path === activePath) ?? NAV_ITEMS[0];
 
   return (
-    <div className="flex flex-col h-dvh bg-zinc-950 text-white overflow-hidden">
+    <div className="flex flex-col h-dvh bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white overflow-hidden">
       <ShellHeader
         authState={auth.authState}
         accounts={auth.accounts}
@@ -114,15 +114,15 @@ export function Shell({ children, isDev }: ShellProps) {
 
         {/* Sidebar drawer */}
         <nav className={[
-          'fixed inset-y-0 left-0 z-50 flex flex-col w-56 bg-zinc-950 border-r border-zinc-800',
+          'fixed inset-y-0 left-0 z-50 flex flex-col w-56 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800',
           'transition-transform duration-200',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         ].join(' ')}>
-          <div className="flex items-center justify-between px-4 h-14 border-b border-zinc-800 flex-shrink-0">
-            <span className="text-sm font-semibold text-white">Navigation</span>
+          <div className="flex items-center justify-between px-4 h-14 border-b border-zinc-200 dark:border-zinc-800 flex-shrink-0">
+            <span className="text-sm font-semibold text-zinc-900 dark:text-white">Navigation</span>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="p-1 rounded text-zinc-400 hover:text-white transition-colors"
+              className="p-1 rounded text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -139,7 +139,7 @@ export function Shell({ children, isDev }: ShellProps) {
                   onClick={() => handleNavClick(item)}
                   className={[
                     'flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left transition-colors w-full',
-                    isActive ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white',
+                    isActive ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white',
                   ].join(' ')}
                 >
                   <span className={`text-base w-5 text-center ${isActive && 'accent' in item ? item.accent : ''}`}>
@@ -154,9 +154,9 @@ export function Shell({ children, isDev }: ShellProps) {
             })}
           </div>
 
-          <div className="p-4 border-t border-zinc-800">
-            {isDev && <p className="text-[10px] text-zinc-600 mb-2 font-mono">DEV MODE</p>}
-            <p className="text-xs text-zinc-600 leading-relaxed">Trading derivatives involves risk.</p>
+          <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
+            {isDev && <p className="text-[10px] text-zinc-400 mb-2 font-mono">DEV MODE</p>}
+            <p className="text-xs text-zinc-400 leading-relaxed">Trading derivatives involves risk.</p>
           </div>
         </nav>
 
