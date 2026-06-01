@@ -72,7 +72,7 @@ export function Shell({ children, isDev }: ShellProps) {
           <span className="font-semibold text-sm tracking-wide">Binarymatix</span>
         </div>
         {activePath !== '/' && (
-          <span className={`text-sm font-medium ${activeItem.accent ?? 'text-zinc-400'}`}>
+          <span className={`text-sm font-medium ${'accent' in activeItem ? activeItem.accent : 'text-zinc-400'}`}>
             {activeItem.label}
           </span>
         )}
@@ -100,7 +100,7 @@ export function Shell({ children, isDev }: ShellProps) {
                     isActive ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white',
                   ].join(' ')}
                 >
-                  <span className={`text-base w-5 text-center ${isActive ? (item.accent ?? '') : ''}`}>
+                  <span className={`text-base w-5 text-center ${isActive && 'accent' in item ? item.accent : ''}`}>
                     {item.icon}
                   </span>
                   {item.label}
