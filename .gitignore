@@ -1,7 +1,11 @@
 node_modules
 /apps/accumulators/.next
+/apps/accumulators/.turbo
+/apps/home/.turbo
 /apps/digits/.next
+/apps/digits/.turbo
 /apps/rise-fall/.next
+/apps/rise-fall/.turbo
 /apps/accumulators/.env.production
 /apps/digits/.env.production
 /apps/rise-fall/.env.production

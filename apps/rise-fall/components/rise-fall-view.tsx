@@ -3,8 +3,6 @@
 import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Footer } from '@/components/custom/footer';
-import { Header } from '@/components/custom/header';
-import { ThemeToggle } from '@/components/custom/theme-toggle';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 import { useContractMarkers } from '@/hooks/use-contract-markers';
@@ -160,20 +158,6 @@ export function RiseFallView({
 
   return (
     <main className="flex flex-col bg-background max-lg:h-dvh lg:overflow-visible">
-      <Header
-        authState={authState}
-        accounts={accounts}
-        activeAccount={activeAccount}
-        onLogin={onLogin}
-        onSignUp={onSignUp}
-        onLogout={onLogout}
-        onSwitchAccount={onSwitchAccount}
-        logoSrc={logoSrc}
-        appName={appName}
-        actions={<ThemeToggle />}
-      />
-      {/* Spacer to push content below fixed header — taller when authenticated (account bar visible) */}
-      <div className={authState === 'authenticated' ? 'h-[76px] shrink-0' : 'h-[66px] shrink-0'} />
 
       {/*
        * Content area.

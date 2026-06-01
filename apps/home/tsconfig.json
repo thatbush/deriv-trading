@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@deriv/core": ["../accumulators/packages/core/src"]
     }
   },
   "include": [

@@ -7,6 +7,7 @@ const ALLOWED_ORIGINS = [
   /^https:\/\/developers\.deriv\.com$/,
   /^https:\/\/staging-developers\.deriv\.com$/,
   /^https:\/\/.*\.deriv-api-v2\.pages\.dev$/,
+  /^https:\/\/deriv-trading-home\.vercel\.app$/,
   /^http:\/\/localhost:\d+$/,
 ];
 

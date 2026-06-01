@@ -76,35 +76,8 @@ export function useAuth(): UseAuthReturn {
   const [wsUrl, setWsUrl] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const initRef = useRef(false);
-  const shellModeRef = useRef(false);
   const activeAccountIdRef = useRef<string | null>(null);
   const tabHiddenAtRef = useRef<number | null>(null);
-
-  // When running inside the shell iframe, receive auth state via postMessage
-  // instead of running the local OAuth flow.
-  useEffect(() => {
-    const isInIframe = typeof window !== 'undefined' && window.parent !== window;
-    if (!isInIframe) return;
-
-    const handler = (e: MessageEvent) => {
-      if (e.data?.type !== 'SHELL_AUTH') return;
-      shellModeRef.current = true;
-      const { wsUrl: injectedUrl, authState: injectedState, accounts: injectedAccounts, activeAccount } = e.data as {
-        wsUrl?: string;
-        authState?: AuthState;
-        accounts?: DerivAccount[];
-        activeAccount?: DerivAccount | null;
-      };
-      if (injectedState) setAuthState(injectedState);
-      if (injectedAccounts) setAccounts(injectedAccounts);
-      if (activeAccount?.account_id) setActiveAccountId(activeAccount.account_id);
-      setWsUrl(injectedUrl);
-    };
-
-    window.parent.postMessage({ type: 'PREVIEW_READY' }, '*');
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  }, []);
 
   // Fetch OTP WebSocket URL for an account
   const fetchOTPUrl = useCallback(async (accountId: string, authInfo: AuthInfo): Promise<string> => {
@@ -127,12 +100,10 @@ export function useAuth(): UseAuthReturn {
     setAuthState('authenticated');
   }, [fetchOTPUrl]);
 
-  // Initialize: check for OAuth callback or existing session.
-  // Skipped when running inside the shell iframe — auth is injected via SHELL_AUTH postMessage.
+  // Initialize: check for OAuth callback or existing session
   useEffect(() => {
     if (initRef.current) return;
     initRef.current = true;
-    if (typeof window !== 'undefined' && window.parent !== window) return;
 
     const init = async () => {
       const url = new URL(window.location.href);
@@ -209,11 +180,9 @@ export function useAuth(): UseAuthReturn {
   }, [activeAccountId]);
 
   // Refresh the OTP WebSocket URL when returning to the tab after >30s of inactivity.
-  // Skipped in iframe mode — the shell pushes a fresh wsUrl via SHELL_AUTH.
   // OTP URLs are single-use, so a stale URL will cause reconnect failures.
   useEffect(() => {
     if (authState !== 'authenticated') return;
-    if (typeof window !== 'undefined' && window.parent !== window) return;
 
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'hidden') {
