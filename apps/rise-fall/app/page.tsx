@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSmartChartsApi } from '@/hooks/use-smartcharts-api';
 import { useSmartChartChartData } from '@/hooks/use-smartchart-chart-data';
 import { useRiseFallTrading } from '../hooks/use-rise-fall-trading';
@@ -7,7 +8,7 @@ import { useDerivWSContext } from '@/components/custom/deriv-ws-provider';
 import { useLogoSrc } from '@/components/custom/logo-src-provider';
 import { RiseFallView } from '../components/rise-fall-view';
 
-export default function RiseFallPage() {
+function RiseFallPage() {
   const logoSrc = useLogoSrc();
   const { ws, isConnected, isExhausted, auth } = useDerivWSContext();
   const { authState, accounts, activeAccount, login, signUp, logout, switchAccount } = auth;
@@ -62,5 +63,13 @@ export default function RiseFallPage() {
       subscribeQuotes={subscribeQuotes}
       unsubscribeQuotes={unsubscribeQuotes}
     />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense>
+      <RiseFallPage />
+    </Suspense>
   );
 }

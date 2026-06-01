@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSmartChartsApi } from '@/hooks/use-smartcharts-api';
 import { useSmartChartChartData } from '@/hooks/use-smartchart-chart-data';
 import { useAccumulatorTrading } from '../hooks/use-accumulator-trading';
@@ -7,7 +8,7 @@ import { useDerivWSContext } from '@/components/custom/deriv-ws-provider';
 import { useLogoSrc } from '@/components/custom/logo-src-provider';
 import { AccumulatorView } from '../components/accumulator-view';
 
-export default function AccumulatorPage() {
+function AccumulatorPage() {
   const logoSrc = useLogoSrc();
   const { ws, isConnected, isExhausted, auth } = useDerivWSContext();
   const { authState, accounts, activeAccount, login, signUp, logout, switchAccount } = auth;
@@ -53,5 +54,13 @@ export default function AccumulatorPage() {
       subscribeQuotes={subscribeQuotes}
       unsubscribeQuotes={unsubscribeQuotes}
     />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense>
+      <AccumulatorPage />
+    </Suspense>
   );
 }

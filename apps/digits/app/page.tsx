@@ -1,11 +1,12 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useDigitsTrading } from '../hooks/use-digits-trading';
 import { useDerivWSContext } from '@/components/custom/deriv-ws-provider';
 import { useLogoSrc } from '@/components/custom/logo-src-provider';
 import { DigitsView } from '../components/digits-view';
 
-export default function DigitsPage() {
+function DigitsPage() {
   const logoSrc = useLogoSrc();
   const { ws, isConnected, isExhausted, auth } = useDerivWSContext();
   const { authState, accounts, activeAccount, login, signUp, logout, switchAccount } = auth;
@@ -51,5 +52,13 @@ export default function DigitsPage() {
       buyError={trading.buyError}
       clearBuyResult={trading.clearBuyResult}
     />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense>
+      <DigitsPage />
+    </Suspense>
   );
 }
