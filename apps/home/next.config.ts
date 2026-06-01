@@ -7,23 +7,9 @@ const nextConfig: NextConfig = {
       '@deriv/core': '../accumulators/packages/core/src',
     },
   },
-  async rewrites() {
-    if (process.env.NODE_ENV === 'development') {
-      return {
-        beforeFiles: [
-          { source: '/accumulators', destination: 'http://localhost:3001/' },
-          { source: '/accumulators/:path*', destination: 'http://localhost:3001/:path*' },
-          { source: '/rise-fall', destination: 'http://localhost:3002/' },
-          { source: '/rise-fall/:path*', destination: 'http://localhost:3002/:path*' },
-          { source: '/digits', destination: 'http://localhost:3003/' },
-          { source: '/digits/:path*', destination: 'http://localhost:3003/:path*' },
-        ],
-        afterFiles: [],
-        fallback: [],
-      };
-    }
-    return { beforeFiles: [], afterFiles: [], fallback: [] };
-  },
+  // No rewrites: sub-apps are loaded directly from their own origins inside the
+  // shell iframe (see lib/sub-apps.ts). Proxying /digits etc. through the home
+  // app would collide with the catch-all shell routes and recurse the shell.
 };
 
 export default nextConfig;

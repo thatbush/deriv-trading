@@ -4,20 +4,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { ShellHeader } from './shell-header';
-
-const SUB_APP_PATHS = ['/digits', '/accumulators', '/rise-fall'] as const;
-type SubAppPath = typeof SUB_APP_PATHS[number];
+import { SUB_APPS, matchSubApp, buildIframeSrc } from '@/lib/sub-apps';
 
 const NAV_ITEMS = [
-  { label: 'Home',         path: '/',             icon: '⌂', accent: '',                  devPort: null },
-  { label: 'Digits',       path: '/digits',       icon: '#', accent: 'text-emerald-400',  devPort: 3003 },
-  { label: 'Accumulators', path: '/accumulators', icon: '↑', accent: 'text-violet-400',   devPort: 3001 },
-  { label: 'Rise & Fall',  path: '/rise-fall',    icon: '↕', accent: 'text-orange-400',   devPort: 3002 },
-] as const;
-
-function getSubAppBase(pathname: string): SubAppPath | null {
-  return SUB_APP_PATHS.find((p) => pathname === p || pathname.startsWith(p + '/')) ?? null;
-}
+  { label: 'Home', path: '/', icon: '⌂', accent: '' },
+  ...SUB_APPS.map((a) => ({ label: a.label, path: a.path, icon: a.icon, accent: a.accent })),
+];
 
 interface ShellProps {
   children: React.ReactNode;
@@ -29,16 +21,29 @@ export function Shell({ children, isDev }: ShellProps) {
   const pathname = usePathname();
   const auth = useAuth();
 
-  const subAppBase = getSubAppBase(pathname);
-  const isSubApp = subAppBase !== null;
+  const activeApp = matchSubApp(pathname);
+  const isSubApp = activeApp !== null;
 
-  // iframeSrc: initialise from the current pathname so deep links work on first load.
-  // After that, only update it when the user explicitly navigates via the sidebar.
-  const [iframeSrc, setIframeSrc] = useState<string>(pathname);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+
+  // The iframe src is derived from the active app + pathname. We compute it once
+  // per active app and hold it, so the sub-app's *internal* navigation (which we
+  // mirror into the address bar) doesn't force-reload the iframe.
+  const [iframeSrc, setIframeSrc] = useState<string>(() =>
+    activeApp ? buildIframeSrc(activeApp, pathname, isDev) : ''
+  );
+  const loadedAppKey = useRef<string | null>(activeApp?.key ?? null);
+
+  // When the active sub-app changes (or first mount of one), (re)build the src.
+  useEffect(() => {
+    if (activeApp && activeApp.key !== loadedAppKey.current) {
+      loadedAppKey.current = activeApp.key;
+      setIframeSrc(buildIframeSrc(activeApp, pathname, isDev));
+    }
+    if (!activeApp) loadedAppKey.current = null;
+  }, [activeApp, pathname, isDev]);
 
   // Apply theme class to <html> so Tailwind dark: variants work in the shell chrome
   useEffect(() => {
@@ -65,15 +70,19 @@ export function Shell({ children, isDev }: ShellProps) {
       if (e.data?.type === 'PREVIEW_READY') {
         pushToIframe(iframeRef.current);
       }
-      // Sub-app reports its full pathname (e.g. /rise-fall/reports).
-      // Update the Next.js URL so the address bar and back button work correctly.
-      if (e.data?.type === 'SHELL_NAVIGATE' && typeof e.data.path === 'string') {
-        router.replace(e.data.path as string, { scroll: false });
+      // Sub-app reports its own *internal* pathname (e.g. /reports). Mirror it into
+      // the shell address bar as /digits/reports so the URL + back button stay correct.
+      if (e.data?.type === 'SHELL_NAVIGATE' && typeof e.data.path === 'string' && activeApp) {
+        const internal = e.data.path as string;
+        const shellPath = internal === '/' ? activeApp.path : activeApp.path + internal;
+        if (shellPath !== pathname) {
+          router.replace(shellPath, { scroll: false });
+        }
       }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [pushToIframe, router]);
+  }, [pushToIframe, router, activeApp, pathname]);
 
   // Re-push whenever auth or theme changes (iframe already mounted)
   useEffect(() => {
@@ -82,18 +91,10 @@ export function Shell({ children, isDev }: ShellProps) {
 
   const navigateTo = useCallback((path: string) => {
     setSidebarOpen(false);
-    if (isDev) {
-      const item = NAV_ITEMS.find((n) => n.path === path);
-      if (item && item.devPort !== null) {
-        window.open(`http://localhost:${item.devPort}/`, '_blank');
-        return;
-      }
-    }
-    setIframeSrc(path);
     router.push(path);
-  }, [isDev, router]);
+  }, [router]);
 
-  const activeNavPath = subAppBase ?? '/';
+  const activeNavPath = activeApp?.path ?? '/';
 
   return (
     <div className="flex flex-col h-dvh bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white overflow-hidden">
@@ -157,9 +158,6 @@ export function Shell({ children, isDev }: ShellProps) {
                     {item.icon}
                   </span>
                   {item.label}
-                  {isDev && item.devPort !== null && (
-                    <span className="ml-auto text-[10px] text-zinc-600">↗</span>
-                  )}
                 </button>
               );
             })}
@@ -173,13 +171,13 @@ export function Shell({ children, isDev }: ShellProps) {
 
         {/* Content area */}
         <main className="flex-1 overflow-hidden">
-          {isSubApp ? (
+          {isSubApp && activeApp ? (
             <iframe
-              key={subAppBase}
+              key={activeApp.key}
               ref={iframeRef}
               src={iframeSrc}
               className="w-full h-full border-0"
-              title={NAV_ITEMS.find((n) => n.path === subAppBase)?.label ?? 'App'}
+              title={activeApp.label}
             />
           ) : (
             <div className="h-full overflow-y-auto">{children}</div>

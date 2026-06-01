@@ -1,7 +1,3 @@
 {
-  "rewrites": [
-    { "source": "/digits/:path*", "destination": "https://binarymatix.vercel.app/:path*" },
-    { "source": "/accumulators/:path*", "destination": "https://deriv-trading.vercel.app/:path*" },
-    { "source": "/rise-fall/:path*", "destination": "https://deriv-trading-rise-fall.vercel.app/:path*" }
-  ]
+  "rewrites": []
 }
