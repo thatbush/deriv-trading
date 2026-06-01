@@ -9,7 +9,7 @@
  * the npm dep → rerun, no stale committed binaries).
  *
  * Usage: Called from template package.json scripts with the template directory as CWD.
- * E.g. "copy-smartcharts-assets": "node ../../scripts/copy-smartcharts-assets.js"
+ * E.g. "copy-smartcharts-assets": "node ../../scripts/copy-smartcharts-assets.js" yeah
  */
 const fs = require('node:fs');
 const path = require('node:path');
