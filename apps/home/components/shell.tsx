@@ -12,7 +12,6 @@ const NAV_ITEMS = [
 
 type NavPath = (typeof NAV_ITEMS)[number]['path'];
 
-// Passed from layout via a server component — true when NODE_ENV === 'development'
 interface ShellProps {
   children: React.ReactNode;
   isDev: boolean;
@@ -41,100 +40,103 @@ export function Shell({ children, isDev }: ShellProps) {
     setSidebarOpen(false);
   }, [activePath]);
 
-  const activeItem = NAV_ITEMS.find((n) => n.path === activePath) ?? NAV_ITEMS[0];
-
-  // In dev, sub-apps run on their own ports so iframes hit CORS.
-  // Open them in a new tab instead, with the shell still providing navigation context.
   const handleNavClick = useCallback((item: typeof NAV_ITEMS[number]) => {
     if (isDev && item.devPort !== null) {
-      window.open(`http://localhost:${item.devPort}/?embedded=0`, '_blank');
+      window.open(`http://localhost:${item.devPort}/`, '_blank');
       setSidebarOpen(false);
       return;
     }
     navigate(item.path);
   }, [isDev, navigate]);
 
+  const activeItem = NAV_ITEMS.find((n) => n.path === activePath) ?? NAV_ITEMS[0];
+
   return (
-    <div className="flex flex-col h-dvh bg-black text-white overflow-hidden">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 h-12 border-b border-zinc-800 flex-shrink-0 z-30 bg-black">
-        <div className="flex items-center gap-3">
+    <div className="h-dvh bg-black text-white overflow-hidden relative">
+
+      {/* Sidebar overlay backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar drawer — slides in over everything including the iframe */}
+      <nav className={[
+        'fixed inset-y-0 left-0 z-50 flex flex-col w-56 bg-zinc-950 border-r border-zinc-800',
+        'transition-transform duration-200',
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+      ].join(' ')}>
+        {/* Sidebar header */}
+        <div className="flex items-center gap-3 px-4 h-14 border-b border-zinc-800 flex-shrink-0">
+          <Image src="/bm-logo-w.jpeg" alt="Binarymatix" width={24} height={24} className="rounded object-contain" />
+          <span className="font-semibold text-sm tracking-wide">Binarymatix</span>
           <button
-            className="lg:hidden p-1 rounded text-zinc-400 hover:text-white transition-colors"
-            onClick={() => setSidebarOpen((v) => !v)}
-            aria-label="Toggle navigation"
+            className="ml-auto p-1 rounded text-zinc-400 hover:text-white transition-colors"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close navigation"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <Image src="/bm-logo-w.jpeg" alt="Binarymatix" width={28} height={28} className="rounded object-contain" />
-          <span className="font-semibold text-sm tracking-wide">Binarymatix</span>
         </div>
-        {activePath !== '/' && (
-          <span className={`text-sm font-medium ${'accent' in activeItem ? activeItem.accent : 'text-zinc-400'}`}>
-            {activeItem.label}
-          </span>
-        )}
-      </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        {sidebarOpen && (
-          <div className="fixed inset-0 z-20 bg-black/60 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
+        <div className="flex flex-col gap-1 p-3 flex-1">
+          {NAV_ITEMS.map((item) => {
+            const isActive = activePath === item.path;
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleNavClick(item)}
+                className={[
+                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left transition-colors w-full',
+                  isActive ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white',
+                ].join(' ')}
+              >
+                <span className={`text-base w-5 text-center ${isActive && 'accent' in item ? item.accent : ''}`}>
+                  {item.icon}
+                </span>
+                {item.label}
+                {isDev && item.devPort !== null && (
+                  <span className="ml-auto text-[10px] text-zinc-600">↗</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
 
-        <nav className={[
-          'fixed lg:relative inset-y-0 left-0 z-20 flex flex-col w-52 border-r border-zinc-800 bg-black pt-14 lg:pt-0',
-          'transition-transform duration-200',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-        ].join(' ')}>
-          <div className="flex flex-col gap-1 p-3 flex-1">
-            {NAV_ITEMS.map((item) => {
-              const isActive = activePath === item.path;
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => handleNavClick(item)}
-                  className={[
-                    'flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left transition-colors w-full',
-                    isActive ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white',
-                  ].join(' ')}
-                >
-                  <span className={`text-base w-5 text-center ${isActive && 'accent' in item ? item.accent : ''}`}>
-                    {item.icon}
-                  </span>
-                  {item.label}
-                  {isDev && item.devPort !== null && (
-                    <span className="ml-auto text-[10px] text-zinc-600">↗</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+        <div className="p-4 border-t border-zinc-800">
+          {isDev && <p className="text-[10px] text-zinc-600 mb-2 font-mono">DEV MODE</p>}
+          <p className="text-xs text-zinc-600 leading-relaxed">
+            Trading derivatives involves risk.
+          </p>
+        </div>
+      </nav>
 
-          <div className="p-4 border-t border-zinc-800">
-            {isDev && (
-              <p className="text-[10px] text-zinc-600 mb-2 font-mono">DEV MODE</p>
-            )}
-            <p className="text-xs text-zinc-600 leading-relaxed">
-              Trading derivatives involves risk.
-            </p>
-          </div>
-        </nav>
+      {/* Hamburger trigger — floats over the top-left of whatever is rendered */}
+      <button
+        className="fixed top-3 left-3 z-30 flex items-center justify-center w-8 h-8 rounded-lg bg-black/70 backdrop-blur-sm border border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open navigation"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
 
-        <main className="flex-1 overflow-hidden relative">
-          {activePath === '/' ? (
-            <div className="h-full overflow-y-auto">{children}</div>
-          ) : (
-            <iframe
-              key={activePath}
-              src={`${activePath}?embedded=1`}
-              className="w-full h-full border-0"
-              title={activeItem.label}
-            />
-          )}
-        </main>
-      </div>
+      {/* Full-viewport content — home page or iframe */}
+      {activePath === '/' ? (
+        <div className="h-full overflow-y-auto">{children}</div>
+      ) : (
+        <iframe
+          key={activePath}
+          src={activePath}
+          className="w-full h-full border-0"
+          title={activeItem.label}
+        />
+      )}
     </div>
   );
 }
