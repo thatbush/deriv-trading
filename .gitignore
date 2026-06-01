@@ -1,0 +1,8 @@
+node_modules
+/apps/accumulators/.next
+/apps/digits/.next
+/apps/rise-fall/.next
+/apps/accumulators/.env.production
+/apps/digits/.env.production
+/apps/rise-fall/.env.production
+/apps/digits/out

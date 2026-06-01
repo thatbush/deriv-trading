@@ -1,0 +1,13 @@
+{
+  "name": "deriv-trading",
+  "private": true,
+  "packageManager": "npm@10.0.0",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build"
+  },
+  "devDependencies": {
+    "turbo": "latest"
+  }
+}
