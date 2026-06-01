@@ -9,7 +9,7 @@ export default function Home() {
           <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-sm font-medium">
             BM
           </div>
-          <span className="text-sm text-zinc-400 tracking-widest uppercase">Binary Matix</span>
+          <span className="text-sm text-zinc-400 tracking-widest uppercase">Binarymatix</span>
         </div>
 
         <h1 className="text-4xl font-semibold mb-2">Trading tools</h1>

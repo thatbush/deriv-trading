@@ -55,10 +55,10 @@ export function Header({
   actions,
 }: HeaderProps) {
   const [logoError, setLogoError] = useState(false);
-  const logoLetter = (appName ?? process.env.NEXT_PUBLIC_DERIV_APP_NAME ?? 'Deriv Trading')
+  const logoLetter = (appName ?? process.env.NEXT_PUBLIC_DERIV_APP_NAME ?? 'Binarymatix')
     .trim()
     .charAt(0)
-    .toUpperCase() || 'D';
+    .toUpperCase() || 'B';
   const [accountSwitcherOpen, setAccountSwitcherOpen] = useState(false);
   const isAuthenticated = authState === 'authenticated';
   const isAuthenticating = authState === 'authenticating';
@@ -80,7 +80,7 @@ export function Header({
           />
         )}
         <h1 className="text-lg font-semibold text-foreground hidden sm:block">
-          {process.env.NEXT_PUBLIC_DERIV_APP_NAME ?? 'Deriv Trading'}
+          {process.env.NEXT_PUBLIC_DERIV_APP_NAME ?? 'Binarymatix'}
         </h1>
       </div>
       <div className="flex items-center gap-3">

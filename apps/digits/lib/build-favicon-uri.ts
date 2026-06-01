@@ -25,7 +25,7 @@ export function buildFaviconUri(): string | null {
     }
   }
 
-  const appName = process.env.NEXT_PUBLIC_DERIV_APP_NAME ?? 'Deriv App';
+  const appName = process.env.NEXT_PUBLIC_DERIV_APP_NAME ?? 'Binarymatix';
   const letter = appName.trim().charAt(0).toUpperCase() || 'A';
 
   // The App Builder patches globals.css with the user's chosen brand colour as

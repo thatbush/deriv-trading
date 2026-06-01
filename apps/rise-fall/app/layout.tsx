@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { IBM_Plex_Sans } from 'next/font/google';
 import { buildFaviconUri } from '@/lib/build-favicon-uri';
-import { getLogoSrc } from '@/lib/get-logo-src';
 import { inter, FONT_CLASS_MAP } from '@/lib/fonts';
 import { TemplateLayout } from '@/components/custom/template-layout';
 import { LogoSrcProvider } from '@/components/custom/logo-src-provider';
@@ -25,8 +24,8 @@ const ibmPlexSans = IBM_Plex_Sans({
 export function generateMetadata(): Metadata {
   const faviconUri = buildFaviconUri();
   return {
-    title: 'Deriv Rise/Fall Trading App',
-    description: 'A white-label trading application powered by Deriv',
+    title: 'Binarymatix — Rise/Fall',
+    description: 'Binarymatix rise/fall trading',
     ...(faviconUri ? { icons: { icon: faviconUri } } : {}),
   };
 }
@@ -36,7 +35,7 @@ const fontClass =
   inter.className;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const logoSrc = getLogoSrc();
+  const logoSrc = '/bm-logo-w.jpeg';
   return (
     <html lang="en" className="h-full lg:h-auto" suppressHydrationWarning>
       <body

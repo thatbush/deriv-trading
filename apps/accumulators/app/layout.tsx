@@ -21,8 +21,8 @@ const ibmPlexSans = IBM_Plex_Sans({
 export function generateMetadata(): Metadata {
   const faviconUri = buildFaviconUri();
   return {
-    title: 'Deriv Accumulators Trading App',
-    description: 'A white-label accumulator trading application powered by Deriv',
+    title: 'Binarymatix — Accumulators',
+    description: 'Binarymatix accumulators trading',
     ...(faviconUri ? { icons: { icon: faviconUri } } : {}),
   };
 }
@@ -32,7 +32,7 @@ const fontClass =
   inter.className;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const logoSrc = getLogoSrc();
+  const logoSrc = '/bm-logo-w.jpeg'
   return (
     <html lang="en" className="h-full lg:h-auto" suppressHydrationWarning>
       <body
