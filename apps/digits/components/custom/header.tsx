@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -54,12 +55,16 @@ export function Header({
   appName,
   actions,
 }: HeaderProps) {
+  const searchParams = useSearchParams();
+  const isEmbedded = searchParams.get('embedded') === '1';
   const [logoError, setLogoError] = useState(false);
   const logoLetter = (appName ?? process.env.NEXT_PUBLIC_DERIV_APP_NAME ?? 'Binarymatix')
     .trim()
     .charAt(0)
     .toUpperCase() || 'B';
   const [accountSwitcherOpen, setAccountSwitcherOpen] = useState(false);
+
+  if (isEmbedded) return null;
   const isAuthenticated = authState === 'authenticated';
   const isAuthenticating = authState === 'authenticating';
 

@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Footer } from '@/components/custom/footer';
 import { Header } from '@/components/custom/header';
@@ -140,6 +141,8 @@ export function RiseFallView({
   logoSrc,
   appName,
 }: RiseFallViewProps) {
+  const searchParams = useSearchParams();
+  const isEmbedded = searchParams.get('embedded') === '1';
   const isMobile = useIsMobile();
   const contractMarkers = useContractMarkers(openPositions, activeSymbol?.underlying_symbol, isMobile);
 
@@ -173,7 +176,7 @@ export function RiseFallView({
         actions={<ThemeToggle />}
       />
       {/* Spacer to push content below fixed header — taller when authenticated (account bar visible) */}
-      <div className={authState === 'authenticated' ? 'h-[76px] shrink-0' : 'h-[66px] shrink-0'} />
+      {!isEmbedded && <div className={authState === 'authenticated' ? 'h-[76px] shrink-0' : 'h-[66px] shrink-0'} />}
 
       {/*
        * Content area.

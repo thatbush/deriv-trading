@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Footer } from '@/components/custom/footer';
 import { Header } from '@/components/custom/header';
@@ -124,6 +125,8 @@ export function AccumulatorView({
   logoSrc,
   appName,
 }: AccumulatorViewProps) {
+  const searchParams = useSearchParams();
+  const isEmbedded = searchParams.get('embedded') === '1';
   const isMobile = useIsMobile();
   const contractMarkers = useContractMarkers(openPositions, activeSymbol?.underlying_symbol, isMobile);
 
@@ -187,7 +190,7 @@ export function AccumulatorView({
         actions={<ThemeToggle />}
       />
       {/* Spacer to push content below fixed header — taller when authenticated (account bar visible) */}
-      <div className={authState === 'authenticated' ? 'h-[76px] shrink-0' : 'h-[66px] shrink-0'} />
+      {!isEmbedded && <div className={authState === 'authenticated' ? 'h-[76px] shrink-0' : 'h-[66px] shrink-0'} />}
 
       <div className="flex w-full max-w-7xl mx-auto flex-col px-3 py-2 sm:px-4 sm:py-4 gap-2 sm:gap-3 max-lg:flex-1 max-lg:min-h-0 max-lg:overflow-hidden lg:flex-none lg:overflow-visible">
         <div className="max-lg:flex max-lg:flex-col max-lg:flex-1 max-lg:min-h-0 lg:grid lg:grid-cols-[1fr_400px] lg:gap-4">

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@deriv/core'],
-  assetPrefix: 'https://deriv-trading.vercel.app'
+  assetPrefix: process.env.NODE_ENV === 'production' ? 'https://deriv-trading.vercel.app' : undefined,
 }
 
 module.exports = nextConfig
