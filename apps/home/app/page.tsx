@@ -42,29 +42,29 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-full px-6 py-12 bg-black text-white">
+    <div className="flex flex-col items-center justify-center min-h-full px-6 py-12 bg-[var(--background)] text-[var(--foreground)]">
       <div className="max-w-2xl w-full">
         <h1 className="text-3xl font-semibold mb-1">Trading tools</h1>
-        <p className="text-zinc-400 mb-8 text-sm">Powered by Deriv API. Choose a market to start.</p>
+        <p className="text-zinc-500 mb-8 text-sm">Powered by Deriv API. Choose a market to start.</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {TOOLS.map((tool) => (
             <button
               key={tool.path}
               onClick={() => navigate(tool.path)}
-              className={`group border border-zinc-800 rounded-2xl p-5 text-left ${tool.hoverBorder} transition-colors`}
+              className={`group border border-zinc-300 dark:border-zinc-800 rounded-2xl p-5 text-left ${tool.hoverBorder} transition-colors`}
             >
               <div className={`w-10 h-10 rounded-xl ${tool.iconBg} flex items-center justify-center mb-4`}>
                 <span className={`${tool.iconColor} text-lg`}>{tool.icon}</span>
               </div>
               <p className="font-medium mb-1">{tool.label}</p>
-              <p className="text-sm text-zinc-400 mb-4">{tool.description}</p>
+              <p className="text-sm text-zinc-500 mb-4">{tool.description}</p>
               <span className={`text-sm ${tool.linkColor} group-hover:underline`}>Open →</span>
             </button>
           ))}
         </div>
 
-        <p className="text-xs text-zinc-600">
+        <p className="text-xs text-zinc-400">
           Trading derivatives involves risk. Only trade with money you can afford to lose.
         </p>
       </div>

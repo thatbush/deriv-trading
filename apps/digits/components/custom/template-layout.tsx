@@ -3,6 +3,7 @@ import { DerivWSProvider } from './deriv-ws-provider';
 import { Toaster } from '@/components/ui/sonner';
 import ViewportScaler from './ViewportScaler';
 import { EnvCheck } from './env-check';
+import { ThemeBridge } from './theme-bridge';
 
 /**
  * Shared layout wrapper for all template apps.
@@ -31,6 +32,7 @@ export function TemplateLayout({ children }: { children: React.ReactNode }) {
       <DerivWSProvider>
         <ViewportScaler>{children}</ViewportScaler>
       </DerivWSProvider>
+      <ThemeBridge />
       <Toaster />
       <EnvCheck />
     </Providers>

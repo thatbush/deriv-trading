@@ -25,6 +25,11 @@ export function Shell({ children, isDev }: ShellProps) {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
+  // Apply theme class to <html> so Tailwind dark: variants work in the shell
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
+
   // Sync active path from browser URL
   useEffect(() => {
     const sync = () => {
