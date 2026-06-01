@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 
 const TOOLS = [
   {
@@ -39,10 +39,7 @@ const TOOLS = [
 ] as const;
 
 export default function Home() {
-  const navigate = useCallback((path: string) => {
-    window.history.pushState(null, '', path);
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  }, []);
+  const router = useRouter();
 
   return (
     <div className="flex flex-col min-h-full bg-[var(--background)] text-[var(--foreground)]">
@@ -59,7 +56,7 @@ export default function Home() {
           Professional trading tools for synthetic indices, no complexity. Just clean charts and fast execution.
         </p>
         <button
-          onClick={() => navigate('/digits')}
+          onClick={() => router.push('/digits')}
           className="px-6 py-3 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-semibold hover:bg-zinc-700 dark:hover:bg-zinc-100 transition-colors"
         >
           Start trading
@@ -75,7 +72,7 @@ export default function Home() {
           {TOOLS.map((tool) => (
             <button
               key={tool.path}
-              onClick={() => navigate(tool.path)}
+              onClick={() => router.push(tool.path)}
               className={`group flex flex-col border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 text-left ${tool.hoverBorder} hover:shadow-sm transition-all`}
             >
               <div className={`w-10 h-10 rounded-xl ${tool.iconBg} flex items-center justify-center mb-4 flex-shrink-0`}>
