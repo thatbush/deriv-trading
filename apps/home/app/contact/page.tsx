@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { PageFooter } from '@/components/page-footer';
 
 export const metadata: Metadata = {
   title: 'Contact',
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function Contact() {
   return (
-    <div className="flex flex-col min-h-full bg-[var(--background)] text-[var(--foreground)]">
+    <div className="flex flex-col min-h-full bg-[var(--background)] text-[var(--foreground)] pb-14">
 
       <section className="flex flex-col px-6 pt-16 pb-10 max-w-2xl mx-auto w-full">
         <p className="text-xs font-semibold tracking-widest uppercase text-zinc-400 mb-4">
@@ -31,10 +32,10 @@ export default function Contact() {
         <div className="flex flex-col gap-4">
           <a
             href="mailto:support@binarymatix.com"
-            className="group flex items-center gap-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+            className="group flex items-center gap-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 hover:border-sky-400 dark:hover:border-sky-600 transition-colors"
           >
-            <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center flex-shrink-0">
-              <span className="text-lg">✉</span>
+            <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950 flex items-center justify-center flex-shrink-0">
+              <span className="text-lg text-sky-600 dark:text-sky-400">✉</span>
             </div>
             <div>
               <p className="text-xs font-semibold tracking-widest uppercase text-zinc-400 mb-0.5">Email</p>
@@ -48,10 +49,10 @@ export default function Contact() {
             href="https://wa.me/447426734754"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center gap-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+            className="group flex items-center gap-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 hover:border-emerald-400 dark:hover:border-emerald-600 transition-colors"
           >
-            <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center flex-shrink-0">
-              <span className="text-lg">✆</span>
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center flex-shrink-0">
+              <span className="text-lg text-emerald-600 dark:text-emerald-400">✆</span>
             </div>
             <div>
               <p className="text-xs font-semibold tracking-widest uppercase text-zinc-400 mb-0.5">WhatsApp / Phone</p>
@@ -64,23 +65,20 @@ export default function Contact() {
       </section>
 
       <section className="px-6 pb-16 max-w-2xl mx-auto w-full">
-        <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5">
-          <p className="text-xs font-semibold tracking-widest uppercase text-zinc-400 mb-2">Response time</p>
-          <p className="text-sm text-zinc-500 leading-relaxed">
-            We usually reply within a day. If it's urgent, WhatsApp is quicker.
-          </p>
+        <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex gap-4">
+          <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-950 flex items-center justify-center flex-shrink-0">
+            <span className="text-amber-600 dark:text-amber-400 text-base">⚡</span>
+          </div>
+          <div>
+            <p className="text-xs font-semibold tracking-widest uppercase text-zinc-400 mb-1">Response time</p>
+            <p className="text-sm text-zinc-500 leading-relaxed">
+              We usually reply within a day. If it's urgent, WhatsApp is quicker.
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className="mt-auto border-t border-zinc-200 dark:border-zinc-800 px-6 py-8">
-        <div className="max-w-2xl mx-auto">
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            <span className="font-semibold text-zinc-500">Risk notice.</span>{' '}
-            Trading derivatives is risky. You can lose more than you put in. Binary Matix does not give investment advice.
-          </p>
-        </div>
-      </section>
-
+      <PageFooter />
     </div>
   );
 }

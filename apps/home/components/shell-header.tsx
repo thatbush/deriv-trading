@@ -38,7 +38,7 @@ export function ShellHeader({
   const isAuthenticating = authState === 'authenticating';
 
   return (
-    <header className="flex items-center justify-between px-4 h-14 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex-shrink-0 z-30">
+    <header className="flex items-center justify-between px-4 h-14 border-b border-zinc-200/80 dark:border-zinc-800/60 bg-[var(--background)] flex-shrink-0 z-30">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}

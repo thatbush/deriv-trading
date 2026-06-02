@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { SUB_APPS } from '@/lib/sub-apps';
+import { PageFooter } from '@/components/page-footer';
 
 export const metadata: Metadata = {
   title: 'About',
@@ -23,7 +24,7 @@ const APP_DETAILS: Record<string, string> = {
 
 export default function About() {
   return (
-    <div className="flex flex-col min-h-full bg-[var(--background)] text-[var(--foreground)] px-4 py-8 max-w-lg mx-auto w-full gap-4">
+    <div className="flex flex-col min-h-full bg-[var(--background)] text-[var(--foreground)] px-4 py-8 max-w-lg mx-auto w-full gap-4 pb-16">
 
       {/* App identity */}
       <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col gap-3">
@@ -86,18 +87,14 @@ export default function About() {
       <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col gap-3">
         <h2 className="text-sm font-bold text-[var(--foreground)]">Support</h2>
         <a href="mailto:support@binarymatix.com" className="flex items-center gap-2 text-sm text-zinc-500 hover:text-[var(--foreground)] transition-colors">
-          <span className={ `text-xl w-9 h-9 flex items-center justify-center text-center text-zinc-400 shrink-0 rounded-lg bg-zinc-200 dark:bg-zinc-700` }>✉</span> support@binarymatix.com
+          <span className="text-xl w-9 h-9 flex items-center justify-center text-center shrink-0 rounded-lg bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400">✉</span> support@binarymatix.com
         </a>
         <a href="https://wa.me/447426734754" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-zinc-500 hover:text-[var(--foreground)] transition-colors">
-          <span className={ `text-xl w-9 h-9 flex items-center justify-center text-center text-zinc-400 shrink-0 rounded-lg bg-zinc-200 dark:bg-zinc-700` }>✆</span> +44 7426 734754
+          <span className="text-xl w-9 h-9 flex items-center justify-center text-center shrink-0 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">✆</span> +44 7426 734754
         </a>
       </div>
 
-      {/* Footer */}
-      <p className="text-center text-xs text-zinc-400 pb-4">
-        © 2026 Binary Matix. Powered by Deriv API.
-      </p>
-
+      <PageFooter />
     </div>
   );
 }

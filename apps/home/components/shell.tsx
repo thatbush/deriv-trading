@@ -7,10 +7,11 @@ import { ShellHeader } from './shell-header';
 import { SUB_APPS, matchSubApp, buildIframeSrc } from '@/lib/sub-apps';
 
 const NAV_ITEMS = [
-  { label: 'Home', path: '/', icon: '⌂', accent: '', accentDim: '' },
+  { label: 'Home', path: '/', icon: '⌂', accent: 'text-zinc-400', accentDim: 'text-zinc-600 dark:text-zinc-500' },
   ...SUB_APPS.map((a) => ({ label: a.label, path: a.path, icon: a.icon, accent: a.brand.accent, accentDim: a.brand.accentDim })),
-  { label: 'About', path: '/about', icon: '❋', accent: '', accentDim: '' },
-  { label: 'Contact', path: '/contact', icon: '✆', accent: '', accentDim: '' },
+  { label: 'Bots', path: '/bots', icon: '⚙', accent: 'text-violet-400', accentDim: 'text-violet-600 dark:text-violet-500' },
+  { label: 'About', path: '/about', icon: '❋', accent: 'text-pink-400', accentDim: 'text-pink-600 dark:text-pink-500' },
+  { label: 'Contact', path: '/contact', icon: '✆', accent: 'text-sky-400', accentDim: 'text-sky-600 dark:text-sky-500' },
 ];
 
 interface ShellProps {
@@ -113,7 +114,7 @@ export function Shell({ children, isDev }: ShellProps) {
   const activeNavPath = activeApp?.path ?? pathname;
 
   return (
-    <div className="flex flex-col h-dvh bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white overflow-hidden">
+    <div className="flex flex-col h-dvh bg-[var(--background)] text-[var(--foreground)] overflow-hidden">
       <ShellHeader
         authState={auth.authState}
         accounts={auth.accounts}
@@ -139,7 +140,7 @@ export function Shell({ children, isDev }: ShellProps) {
         {/* Sidebar drawer */}
         <nav
           className={[
-            'fixed inset-y-0 left-0 z-50 flex flex-col w-56 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800',
+            'fixed inset-y-0 left-0 z-50 flex flex-col w-56 bg-[var(--background)] border-r border-zinc-200 dark:border-zinc-800/60',
             'transition-transform duration-200',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           ].join(' ')}
