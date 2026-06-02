@@ -28,6 +28,9 @@ const RiseFallChart = dynamic(() => import('./rise-fall-chart').then(m => m.Rise
 });
 
 export interface RiseFallViewProps {
+  /** Increments when the underlying WS is swapped, forcing the chart to remount
+   *  and re-subscribe its quote feed onto the new socket. */
+  chartKey: number;
   // Auth
   authState: AuthState;
   accounts: DerivAccount[];
@@ -94,6 +97,7 @@ export interface RiseFallViewProps {
 }
 
 export function RiseFallView({
+  chartKey,
   authState,
   accounts,
   activeAccount,
@@ -173,7 +177,7 @@ export function RiseFallView({
             <div className="max-lg:h-[45dvh] lg:h-[min(33.6rem,66vh)] lg:min-h-[384px]">
               {chartData ? (
                 <RiseFallChart
-                  symbolKey="rise-fall-chart"
+                  symbolKey={`rise-fall-chart-${chartKey}`}
                   symbol={activeSymbol?.underlying_symbol}
                   isConnectionOpened={isConnected}
                   isMobile={isMobile}

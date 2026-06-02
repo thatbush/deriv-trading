@@ -31,6 +31,9 @@ const AccumulatorChart = dynamic(
 );
 
 export interface AccumulatorViewProps {
+  /** Increments when the underlying WS is swapped, forcing the chart to remount
+   *  and re-subscribe its quote feed onto the new socket. */
+  chartKey: number;
   // Auth
   authState: AuthState;
   accounts: DerivAccount[];
@@ -85,6 +88,7 @@ export interface AccumulatorViewProps {
 }
 
 export function AccumulatorView({
+  chartKey,
   authState,
   accounts,
   activeAccount,
@@ -180,7 +184,7 @@ export function AccumulatorView({
             <div className="max-lg:h-[50dvh] lg:h-[min(33.6rem,66vh)] lg:min-h-[384px]">
               {chartData ? (
                 <AccumulatorChart
-                  symbolKey="accumulator-chart"
+                  symbolKey={`accumulator-chart-${chartKey}`}
                   symbol={activeSymbol?.underlying_symbol}
                   isConnectionOpened={isConnected}
                   isMobile={isMobile}
