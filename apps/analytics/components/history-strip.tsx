@@ -18,14 +18,14 @@ export function HistoryStrip({ history }: Props) {
         {history.map((entry, i) => (
           <div key={i} className="flex flex-col items-center gap-1 flex-shrink-0">
             {entry.isRise === null ? (
-              <span className="w-6 h-6 flex items-center justify-center text-[10px] text-muted-foreground">—</span>
+              <span className="w-7 h-5 flex items-center justify-center text-[10px] text-muted-foreground">—</span>
             ) : (
-              <span className={`text-sm ${entry.isRise ? 'text-blue-500' : 'text-pink-500'}`}>
+              <span className={`text-sm leading-none ${entry.isRise ? 'text-blue-500' : 'text-pink-500'}`}>
                 {entry.isRise ? '↑' : '↓'}
               </span>
             )}
             <div
-              className={`w-6 h-6 rounded flex items-center justify-center text-[11px] font-bold
+              className={`w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold
                 ${entry.isEven
                   ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
                   : 'bg-orange-500/20 text-orange-600 dark:text-orange-400'

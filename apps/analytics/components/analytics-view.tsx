@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SymbolSelector } from '@/components/custom/symbol-selector';
 import { DigitDistributionPanel } from './digit-distribution-panel';
+import { Grid2X2, BarChart2 } from 'lucide-react';
 import { EvenOddPanel } from './even-odd-panel';
 import { StreaksPanel } from './streaks-panel';
 import { HistoryStrip } from './history-strip';
@@ -13,9 +14,10 @@ import { useAnalytics } from '@/hooks/use-analytics';
 import { Footer } from '@/components/custom/footer';
 
 const WINDOW_OPTIONS = [
-  { label: '100', value: 100 },
-  { label: '500', value: 500 },
-  { label: '1000', value: 1000 },
+  { label: '15', value: 15 },
+  { label: '30', value: 30 },
+  { label: '60', value: 60 },
+  { label: '90', value: 90 },
 ];
 
 interface AnalyticsViewProps {
@@ -39,7 +41,8 @@ export function AnalyticsView({
   isLoading,
   isConnected,
 }: AnalyticsViewProps) {
-  const [windowSize, setWindowSize] = useState(500);
+  const [windowSize, setWindowSize] = useState(30);
+  const [circleMode, setCircleMode] = useState(false);
   const [overUnderBarrier, setOverUnderBarrier] = useState(5);
 
   const analytics = useAnalytics(prices, pipSize, windowSize, overUnderBarrier);
@@ -49,50 +52,51 @@ export function AnalyticsView({
 
   return (
     <main className="flex flex-col bg-background min-h-dvh">
-      <div className="w-full max-w-5xl mx-auto px-3 py-4 sm:px-4 sm:py-6 flex flex-col gap-4 pb-16">
+      <div className="w-full max-w-5xl mx-auto px-3 py-3 sm:px-4 sm:py-6 flex flex-col gap-3 sm:gap-4 pb-20">
 
         {/* Header row */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex-1">
-            {isLoading ? (
-              <Skeleton className="h-9 w-48" />
-            ) : (
-              <SymbolSelector
-                symbols={symbols}
-                activeSymbol={activeSymbol}
-                onSymbolChange={selectSymbol}
-              />
-            )}
-          </div>
+        <div className="flex flex-col gap-2">
+          {/* Row 1: Symbol selector + live tick */}
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              {isLoading ? (
+                <Skeleton className="h-9 w-36" />
+              ) : (
+                <SymbolSelector
+                  symbols={symbols}
+                  activeSymbol={activeSymbol}
+                  onSymbolChange={selectSymbol}
+                />
+              )}
+            </div>
 
-          {/* Live tick + window selector */}
-          <div className="flex items-center gap-3 flex-wrap">
             {currentTick && (
-              <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-1.5">
-                <span className="text-xs text-muted-foreground">Live</span>
-                <span className="font-mono text-sm font-semibold">{livePriceStr}</span>
+              <div className="flex items-center gap-1.5 rounded-lg bg-muted/50 px-2.5 py-1.5 shrink-0">
+                <span className="text-[11px] text-muted-foreground hidden sm:block">Live</span>
+                <span className="font-mono text-xs sm:text-sm font-semibold">{livePriceStr}</span>
                 {liveDigit !== null && (
-                  <span className={`text-lg font-black w-7 text-center ${liveDigit % 2 === 0 ? 'text-emerald-500' : 'text-orange-500'}`}>
+                  <span className={`text-base sm:text-lg font-black w-6 text-center animate-pulse ${liveDigit % 2 === 0 ? 'text-emerald-500' : 'text-orange-500'}`}>
                     {liveDigit}
                   </span>
                 )}
-                <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground'}`} />
               </div>
             )}
+          </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Sample size:</span>
-              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-                {WINDOW_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setWindowSize(opt.value)}
-                    className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${windowSize === opt.value ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+          {/* Row 2: Sample size selector */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground shrink-0">Ticks:</span>
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+              {WINDOW_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setWindowSize(opt.value)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${windowSize === opt.value ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -106,22 +110,32 @@ export function AnalyticsView({
         ) : (
           <>
             {/* Sample count + disclaimer */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-              <p className="text-xs text-muted-foreground">
-                Based on the last <span className="font-semibold">{analytics.distribution.totalTicks.toLocaleString()}</span> ticks · updates live
-                {analytics.distribution.totalTicks < windowSize && <span className="ml-1 text-amber-500">(collecting data…)</span>}
-              </p>
-              <span className="hidden sm:block text-muted-foreground/40">·</span>
-              <p className="text-xs text-muted-foreground/60">Past outcomes do not predict future results.</p>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              Last <span className="font-semibold">{analytics.distribution.totalTicks.toLocaleString()}</span> ticks · live
+              {analytics.distribution.totalTicks < windowSize && <span className="ml-1 text-amber-500">(collecting…)</span>}
+              <span className="ml-2 text-muted-foreground/50">Past results don&apos;t predict future outcomes.</span>
+            </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <Card>
                 <CardHeader className="pb-2 pt-4 px-4">
-                  <CardTitle className="text-sm font-semibold">Which digit landed most?</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-semibold">Which digit landed most?</CardTitle>
+                    <button
+                      onClick={() => setCircleMode((v) => !v)}
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      title={circleMode ? 'Switch to bars' : 'Switch to circles'}
+                    >
+                      {circleMode ? <BarChart2 size={14} /> : <Grid2X2 size={14} />}
+                    </button>
+                  </div>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
-                  <DigitDistributionPanel data={analytics.distribution} />
+                  <DigitDistributionPanel
+                    data={analytics.distribution}
+                    circleMode={circleMode}
+                    liveDigit={liveDigit}
+                  />
                 </CardContent>
               </Card>
 
