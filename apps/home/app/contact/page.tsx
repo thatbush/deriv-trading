@@ -1,3 +1,18 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Contact',
+  description:
+    'Get in touch with Binary Matix. Reach us by email at support@binarymatix.com or via WhatsApp for trading support and feedback.',
+  alternates: { canonical: 'https://binarymatix.com/contact' },
+  openGraph: {
+    url: 'https://binarymatix.com/contact',
+    title: 'Contact | Binary Matix',
+    description:
+      'Get in touch with Binary Matix by email or WhatsApp. We usually reply within a day.',
+  },
+};
+
 export default function Contact() {
   return (
     <div className="flex flex-col min-h-full bg-[var(--background)] text-[var(--foreground)]">

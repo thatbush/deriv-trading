@@ -1,4 +1,18 @@
+import type { Metadata } from 'next';
 import { SUB_APPS } from '@/lib/sub-apps';
+
+export const metadata: Metadata = {
+  title: 'About',
+  description:
+    'Learn about Binary Matix — a professional trading interface for synthetic indices built on the Deriv API. Version history, tech stack, and support details.',
+  alternates: { canonical: 'https://binarymatix.com/about' },
+  openGraph: {
+    url: 'https://binarymatix.com/about',
+    title: 'About | Binary Matix',
+    description:
+      'Professional trading tools for synthetic indices built on the Deriv API. Digits, Accumulators, Rise & Fall, and live analytics in one place.',
+  },
+};
 
 const APP_DETAILS: Record<string, string> = {
   digits: 'Predict the last digit of the next tick',
