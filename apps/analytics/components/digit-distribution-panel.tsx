@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import type { DigitDistribution } from '@deriv/core';
 
 interface Props {
@@ -47,48 +48,73 @@ const DIGIT_TEXT_COLORS = [
   'text-purple-500',
 ];
 
-function BarView({ data, liveDigit }: { data: DigitDistribution; liveDigit?: number | null }) {
+// Returns whichever digit just changed — lit for 400 ms then null.
+// No CSS animation runs while idle, so no continuous GPU cost.
+function useFlashDigit(liveDigit: number | null | undefined): number | null {
+  const [flashDigit, setFlashDigit] = useState<number | null>(null);
+  const prev = useRef<number | null | undefined>(undefined);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (liveDigit == null || liveDigit === prev.current) return;
+    prev.current = liveDigit;
+
+    if (timer.current) clearTimeout(timer.current);
+    setFlashDigit(liveDigit);
+    timer.current = setTimeout(() => setFlashDigit(null), 400);
+
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [liveDigit]);
+
+  return flashDigit;
+}
+
+function BarView({ data, flashDigit }: { data: DigitDistribution; flashDigit: number | null }) {
   const maxPct = Math.max(...data.percentages, 1);
   const BAR_H = 64;
 
   return (
     <div className="flex flex-col gap-2">
-      {/* 10 equal columns, guaranteed to fit any width */}
       <div className="grid grid-cols-10 gap-px">
-        {data.percentages.map((pct, digit) => (
-          <div key={digit} className="flex flex-col items-center gap-0.5">
-            <span className="text-[8px] leading-none text-muted-foreground font-mono">{pct.toFixed(0)}</span>
-            <div className="w-full flex items-end" style={{ height: `${BAR_H}px` }}>
-              <div
-                className={`w-full rounded-t-sm transition-all duration-300 ${DIGIT_COLORS[digit]} ${
-                  digit === liveDigit ? 'opacity-100 animate-pulse' : digit === data.hotDigit ? 'opacity-100' : 'opacity-60'
-                }`}
-                style={{ height: `${(pct / maxPct) * BAR_H}px` }}
-              />
+        {data.percentages.map((pct, digit) => {
+          const isFlash = digit === flashDigit;
+          return (
+            <div key={digit} className="flex flex-col items-center gap-0.5">
+              <span className="text-[8px] leading-none text-muted-foreground font-mono">{pct.toFixed(0)}</span>
+              <div className="w-full flex items-end" style={{ height: `${BAR_H}px` }}>
+                <div
+                  className={`w-full rounded-t-sm transition-[height] duration-300 ${DIGIT_COLORS[digit]} ${
+                    isFlash ? 'brightness-150' : digit === data.hotDigit ? 'opacity-100' : 'opacity-60'
+                  }`}
+                  style={{ height: `${(pct / maxPct) * BAR_H}px` }}
+                />
+              </div>
+              <span className={`text-[9px] font-bold font-mono mt-0.5 ${
+                isFlash
+                  ? DIGIT_TEXT_COLORS[digit]
+                  : digit === data.hotDigit
+                  ? 'text-foreground'
+                  : digit === data.coldDigit
+                  ? 'text-muted-foreground/40'
+                  : 'text-muted-foreground'
+              }`}>
+                {digit}
+              </span>
             </div>
-            <span className={`text-[9px] font-bold font-mono mt-0.5 ${
-              digit === liveDigit
-                ? `${DIGIT_TEXT_COLORS[digit]} animate-pulse`
-                : digit === data.hotDigit
-                ? 'text-foreground'
-                : digit === data.coldDigit
-                ? 'text-muted-foreground/40'
-                : 'text-muted-foreground'
-            }`}>
-              {digit}
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function CircleView({ data, liveDigit }: { data: DigitDistribution; liveDigit?: number | null }) {
+function CircleView({ data, flashDigit }: { data: DigitDistribution; flashDigit: number | null }) {
   return (
     <div className="grid grid-cols-5 gap-2 sm:gap-3">
       {data.percentages.map((pct, digit) => {
-        const isLive = digit === liveDigit;
+        const isFlash = digit === flashDigit;
         const isHot = digit === data.hotDigit;
         const isCold = digit === data.coldDigit;
         const size = isHot ? 'w-12 h-12 sm:w-14 sm:h-14' : isCold ? 'w-9 h-9 sm:w-10 sm:h-10' : 'w-10 h-10 sm:w-12 sm:h-12';
@@ -99,11 +125,11 @@ function CircleView({ data, liveDigit }: { data: DigitDistribution; liveDigit?: 
               <div
                 className={`
                   ${size} rounded-full flex items-center justify-center font-black text-white
-                  transition-all duration-300
+                  transition-[transform,opacity] duration-150
                   ${DIGIT_COLORS[digit]}
-                  ${isLive ? `ring-2 ring-offset-2 ring-offset-background ${DIGIT_RING_COLORS[digit]} animate-pulse scale-110` : ''}
-                  ${!isLive && isCold ? 'opacity-40' : ''}
-                  ${!isLive && !isHot && !isCold ? 'opacity-70' : ''}
+                  ${isFlash ? `scale-125 ring-2 ring-offset-2 ring-offset-background ${DIGIT_RING_COLORS[digit]}` : 'scale-100'}
+                  ${!isFlash && isCold ? 'opacity-40' : ''}
+                  ${!isFlash && !isHot && !isCold ? 'opacity-70' : ''}
                 `}
               >
                 <span className={`${isHot ? 'text-base sm:text-lg' : 'text-sm sm:text-base'}`}>{digit}</span>
@@ -118,12 +144,14 @@ function CircleView({ data, liveDigit }: { data: DigitDistribution; liveDigit?: 
 }
 
 export function DigitDistributionPanel({ data, circleMode = false, liveDigit }: Props) {
+  const flashDigit = useFlashDigit(liveDigit);
+
   return (
     <div className="flex flex-col gap-3">
       {circleMode ? (
-        <CircleView data={data} liveDigit={liveDigit} />
+        <CircleView data={data} flashDigit={flashDigit} />
       ) : (
-        <BarView data={data} liveDigit={liveDigit} />
+        <BarView data={data} flashDigit={flashDigit} />
       )}
       <div className="flex flex-col gap-1 text-xs text-muted-foreground">
         <span>

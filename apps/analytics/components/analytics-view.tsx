@@ -75,7 +75,7 @@ export function AnalyticsView({
                 <span className="text-[11px] text-muted-foreground hidden sm:block">Live</span>
                 <span className="font-mono text-xs sm:text-sm font-semibold">{livePriceStr}</span>
                 {liveDigit !== null && (
-                  <span className={`text-base sm:text-lg font-black w-6 text-center animate-pulse ${liveDigit % 2 === 0 ? 'text-emerald-500' : 'text-orange-500'}`}>
+                  <span className={`text-base sm:text-lg font-black w-6 text-center ${liveDigit % 2 === 0 ? 'text-emerald-500' : 'text-orange-500'}`}>
                     {liveDigit}
                   </span>
                 )}
