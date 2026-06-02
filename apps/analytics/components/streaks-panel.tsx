@@ -53,11 +53,12 @@ export function StreaksPanel({ data }: Props) {
       </div>
 
       {/* Longest streaks in window */}
+      <p className="text-[11px] text-muted-foreground">Longest runs in this sample</p>
       <div className="divide-y divide-border">
-        <StreakRow label="Longest even" value={longestEven} color="text-emerald-500" />
-        <StreakRow label="Longest odd" value={longestOdd} color="text-orange-500" />
-        <StreakRow label="Longest rise" value={longestRise} color="text-blue-500" />
-        <StreakRow label="Longest fall" value={longestFall} color="text-pink-500" />
+        <StreakRow label="Even in a row" value={longestEven} color="text-emerald-500" />
+        <StreakRow label="Odd in a row" value={longestOdd} color="text-orange-500" />
+        <StreakRow label="Rising ticks" value={longestRise} color="text-blue-500" />
+        <StreakRow label="Falling ticks" value={longestFall} color="text-pink-500" />
       </div>
     </div>
   );

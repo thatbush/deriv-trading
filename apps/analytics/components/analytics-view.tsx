@@ -65,8 +65,8 @@ export function AnalyticsView({
             )}
           </div>
 
-          {/* Live tick */}
-          <div className="flex items-center gap-3">
+          {/* Live tick + window selector */}
+          <div className="flex items-center gap-3 flex-wrap">
             {currentTick && (
               <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-1.5">
                 <span className="text-xs text-muted-foreground">Live</span>
@@ -80,17 +80,19 @@ export function AnalyticsView({
               </div>
             )}
 
-            {/* Window selector */}
-            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-              {WINDOW_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setWindowSize(opt.value)}
-                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${windowSize === opt.value ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Sample size:</span>
+              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                {WINDOW_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setWindowSize(opt.value)}
+                    className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${windowSize === opt.value ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -103,16 +105,20 @@ export function AnalyticsView({
           </div>
         ) : (
           <>
-            {/* Sample count notice */}
-            <p className="text-xs text-muted-foreground">
-              Showing last <span className="font-semibold">{analytics.distribution.totalTicks.toLocaleString()}</span> of {windowSize} ticks
-              {analytics.distribution.totalTicks < windowSize && ' (still loading…)'}
-            </p>
+            {/* Sample count + disclaimer */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+              <p className="text-xs text-muted-foreground">
+                Based on the last <span className="font-semibold">{analytics.distribution.totalTicks.toLocaleString()}</span> ticks · updates live
+                {analytics.distribution.totalTicks < windowSize && <span className="ml-1 text-amber-500">(collecting data…)</span>}
+              </p>
+              <span className="hidden sm:block text-muted-foreground/40">·</span>
+              <p className="text-xs text-muted-foreground/60">Past outcomes do not predict future results.</p>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader className="pb-2 pt-4 px-4">
-                  <CardTitle className="text-sm font-semibold">Digit Distribution</CardTitle>
+                  <CardTitle className="text-sm font-semibold">Which digit landed most?</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
                   <DigitDistributionPanel data={analytics.distribution} />
@@ -121,7 +127,7 @@ export function AnalyticsView({
 
               <Card>
                 <CardHeader className="pb-2 pt-4 px-4">
-                  <CardTitle className="text-sm font-semibold">Even/Odd & Over/Under</CardTitle>
+                  <CardTitle className="text-sm font-semibold">Even or Odd?</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
                   <EvenOddPanel
@@ -135,7 +141,7 @@ export function AnalyticsView({
 
               <Card>
                 <CardHeader className="pb-2 pt-4 px-4">
-                  <CardTitle className="text-sm font-semibold">Streaks</CardTitle>
+                  <CardTitle className="text-sm font-semibold">What&apos;s on a run?</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
                   <StreaksPanel data={analytics.streaks} />
@@ -144,7 +150,7 @@ export function AnalyticsView({
 
               <Card>
                 <CardHeader className="pb-2 pt-4 px-4">
-                  <CardTitle className="text-sm font-semibold">Last 50 Ticks</CardTitle>
+                  <CardTitle className="text-sm font-semibold">Recent tick history</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
                   <HistoryStrip history={analytics.history} />
@@ -152,13 +158,6 @@ export function AnalyticsView({
               </Card>
             </div>
 
-            {/* Disclaimer */}
-            <p className="text-[11px] text-muted-foreground leading-relaxed border-t border-border pt-4">
-              <span className="font-semibold">Insight disclaimer.</span>{' '}
-              These statistics describe the historical distribution of tick outcomes and are provided for information only.
-              Synthetic indices use a random number generator — past outcomes do not predict future results.
-              This is not investment advice.
-            </p>
           </>
         )}
       </div>

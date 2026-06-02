@@ -46,14 +46,14 @@ export function DigitDistributionPanel({ data }: Props) {
           </div>
         ))}
       </div>
-      <div className="flex gap-4 text-xs text-muted-foreground">
+      <div className="flex flex-col gap-1 text-xs text-muted-foreground">
         <span>
-          🔥 Hot: <span className="font-semibold text-foreground">{data.hotDigit}</span>
-          <span className="ml-1 text-muted-foreground/60">({data.percentages[data.hotDigit].toFixed(1)}%)</span>
+          Most frequent: <span className="font-semibold text-foreground">digit {data.hotDigit}</span>
+          <span className="ml-1">— appeared {data.percentages[data.hotDigit].toFixed(1)}% of the time</span>
         </span>
         <span>
-          🧊 Cold: <span className="font-semibold text-foreground">{data.coldDigit}</span>
-          <span className="ml-1 text-muted-foreground/60">({data.percentages[data.coldDigit].toFixed(1)}%)</span>
+          Least frequent: <span className="font-semibold text-foreground">digit {data.coldDigit}</span>
+          <span className="ml-1">— appeared {data.percentages[data.coldDigit].toFixed(1)}% of the time</span>
         </span>
       </div>
     </div>
