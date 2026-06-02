@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Footer } from '@/components/custom/footer';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -140,30 +141,23 @@ export function AccumulatorView({
     (p) => p.contract_type === 'ACCU' && p.underlying_symbol === activeSymbol?.underlying_symbol
   ) ?? null;
 
-  // Barrier color: blue (#008832) when tick is inside, red (#cc2e3d) when crossed.
-  const barrierColor = proposal?.hasCrossedBarrier ? '#cc2e3d' : '#008832';
-
-  // Use absolute barrier values (highBarrier/lowBarrier) which are already delayed
-  // by one tick in the proposal hook via prevBarriersRef.  This positions barriers
-  // at the PREVIOUS tick's level rather than tracking the current spot.
-  const chartBarriers: ChartBarrier[] =
-    proposal?.highBarrier && proposal?.lowBarrier
-      ? [
-          {
-            shade: 'BETWEEN',
-            high: proposal.highBarrier,
-            low: proposal.lowBarrier,
-            relative: false,
-            draggable: false,
-            hideBarrierLine: false,
-            hideOffscreenBarrier: true,
-            hideOffscreenLine: true,
-            hidePriceLabel: false,
-            color: barrierColor,
-            shadeColor: barrierColor,
-          },
-        ]
-      : [];
+  const chartBarriers = useMemo<ChartBarrier[]>(() => {
+    if (!proposal?.highBarrier || !proposal?.lowBarrier) return [];
+    const color = proposal.hasCrossedBarrier ? '#cc2e3d' : '#008832';
+    return [{
+      shade: 'BETWEEN',
+      high: proposal.highBarrier,
+      low: proposal.lowBarrier,
+      relative: false,
+      draggable: false,
+      hideBarrierLine: false,
+      hideOffscreenBarrier: true,
+      hideOffscreenLine: true,
+      hidePriceLabel: false,
+      color,
+      shadeColor: color,
+    }];
+  }, [proposal?.highBarrier, proposal?.lowBarrier, proposal?.hasCrossedBarrier]);
 
   if (error) {
     return (

@@ -14,15 +14,16 @@ interface InsightPanelProps {
 
 export function InsightPanel({ prices, pipSize }: InsightPanelProps) {
   const [open, setOpen] = useState(false);
-  const window100 = useMemo(() => prices.slice(-100), [prices]);
 
-  const dist = useMemo(() => computeDigitDistribution(window100, pipSize), [window100, pipSize]);
-  const evenOdd = useMemo(() => computeEvenOdd(window100, pipSize), [window100, pipSize]);
-  const streaks = useMemo(() => computeStreaks(window100, pipSize), [window100, pipSize]);
+  // Only slice + compute when the panel is open — no CPU spent while collapsed.
+  const window100 = useMemo(() => open ? prices.slice(-100) : [], [open, prices]);
+  const dist   = useMemo(() => open ? computeDigitDistribution(window100, pipSize) : null, [open, window100, pipSize]);
+  const evenOdd = useMemo(() => open ? computeEvenOdd(window100, pipSize) : null,         [open, window100, pipSize]);
+  const streaks = useMemo(() => open ? computeStreaks(window100, pipSize) : null,          [open, window100, pipSize]);
 
   if (prices.length < 5) return null;
 
-  const streakLabel = streaks.current.type !== 'none'
+  const streakLabel = streaks && streaks.current.type !== 'none'
     ? `${streaks.current.length} ${streaks.current.type}`
     : null;
 
@@ -36,9 +37,8 @@ export function InsightPanel({ prices, pipSize }: InsightPanelProps) {
         <span className="text-[10px]">{open ? '▲' : '▼'}</span>
       </button>
 
-      {open && (
+      {open && dist && evenOdd && streaks && (
         <div className="mt-2 flex flex-col gap-2">
-          {/* Even/Odd split */}
           <div className="flex flex-col gap-1">
             <div className="flex justify-between text-[11px] text-muted-foreground">
               <span>Even <span className="font-semibold text-foreground">{evenOdd.evenPercent.toFixed(0)}%</span></span>
@@ -50,7 +50,6 @@ export function InsightPanel({ prices, pipSize }: InsightPanelProps) {
             </div>
           </div>
 
-          {/* Hot/cold + streak */}
           <div className="flex gap-3 text-[11px] text-muted-foreground">
             <span>🔥 <span className="font-semibold text-foreground">{dist.hotDigit}</span></span>
             <span>🧊 <span className="font-semibold text-foreground">{dist.coldDigit}</span></span>

@@ -9,6 +9,8 @@ import { SUB_APPS, matchSubApp, buildIframeSrc } from '@/lib/sub-apps';
 const NAV_ITEMS = [
   { label: 'Home', path: '/', icon: '⌂', accent: '' },
   ...SUB_APPS.map((a) => ({ label: a.label, path: a.path, icon: a.icon, accent: a.accent })),
+    { label: 'About', path: '/about', icon: '❋', accent: '' },
+  { label: 'Contact', path: '/contact', icon: '✆', accent: '' }
 ];
 
 interface ShellProps {
@@ -108,7 +110,7 @@ export function Shell({ children, isDev }: ShellProps) {
     router.push(path);
   }, [router]);
 
-  const activeNavPath = activeApp?.path ?? '/';
+  const activeNavPath = activeApp?.path ?? pathname;
 
   return (
     <div className="flex flex-col h-dvh bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white overflow-hidden">
@@ -179,7 +181,7 @@ export function Shell({ children, isDev }: ShellProps) {
 
           <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
             {isDev && <p className="text-[10px] text-zinc-400 mb-2 font-mono">DEV MODE</p>}
-            <p className="text-xs text-zinc-400 leading-relaxed">Trading derivatives involves risk.</p>
+            <p className="text-xs text-zinc-400 leading-relaxed">Version 1.1.0 (Beta)</p>
           </div>
         </nav>
 
