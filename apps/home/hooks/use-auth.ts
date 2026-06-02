@@ -61,6 +61,8 @@ export interface UseAuthReturn {
   switchAccount: (accountId: string) => Promise<void>;
   /** Update an account's balance live (e.g. from a sub-app balance stream). */
   updateBalance: (accountId: string, balance: string) => void;
+  /** Mint a fresh single-use OTP WebSocket URL for the active account. */
+  getFreshWsUrl: () => Promise<string | undefined>;
   error: string | null;
 }
 
@@ -92,6 +94,22 @@ export function useAuth(): UseAuthReturn {
   const fetchOTPUrl = useCallback(async (accountId: string, authInfo: AuthInfo): Promise<string> => {
     return getWebSocketOTP(accountId, authInfo, getAuthConfig().clientId);
   }, []);
+
+  // Fetch a FRESH single-use OTP WebSocket URL for the current account.
+  // OTP URLs are consumed on connect, so each iframe that wants to open an
+  // authenticated socket needs its own freshly-minted URL — reusing the stored
+  // `wsUrl` for a second iframe (e.g. after navigating away and back) hands it a
+  // spent token and the authenticated connection silently fails.
+  const getFreshWsUrl = useCallback(async (): Promise<string | undefined> => {
+    const authInfo = getAuthInfo();
+    const accountId = activeAccountIdRef.current ?? getActiveLoginId();
+    if (!authInfo || !accountId) return undefined;
+    try {
+      return await fetchOTPUrl(accountId, authInfo);
+    } catch {
+      return undefined;
+    }
+  }, [fetchOTPUrl]);
 
   // Complete auth: fetch accounts → get OTP → set WS URL
   const completeAuth = useCallback(async (authInfo: AuthInfo) => {
@@ -293,6 +311,7 @@ export function useAuth(): UseAuthReturn {
     logout,
     switchAccount,
     updateBalance,
+    getFreshWsUrl,
     error,
   };
 }

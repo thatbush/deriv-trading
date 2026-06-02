@@ -50,25 +50,35 @@ export function Shell({ children, isDev }: ShellProps) {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
-  // Push auth + theme into the iframe
-  const pushToIframe = useCallback((iframe: HTMLIFrameElement | null) => {
+  // Push theme + auth into the iframe. When `freshOtp` is true, mint a brand-new
+  // single-use OTP for this iframe instead of reusing the stored (possibly spent)
+  // wsUrl — required whenever a new iframe is opening an authenticated socket.
+  const pushToIframe = useCallback(async (iframe: HTMLIFrameElement | null, freshOtp = false) => {
     if (!iframe?.contentWindow) return;
     iframe.contentWindow.postMessage({ type: 'PREVIEW_BRANDING', theme }, '*');
+
+    let wsUrl = auth.wsUrl;
+    if (freshOtp && auth.authState === 'authenticated') {
+      wsUrl = (await auth.getFreshWsUrl()) ?? auth.wsUrl;
+    }
+    // The iframe may have been swapped out while we awaited the OTP fetch.
+    if (!iframe.contentWindow) return;
     iframe.contentWindow.postMessage({
       type: 'SHELL_AUTH',
-      wsUrl: auth.wsUrl,
+      wsUrl,
       accountId: auth.activeAccountId,
       authState: auth.authState,
       accounts: auth.accounts,
       activeAccount: auth.activeAccount,
     }, '*');
-  }, [theme, auth.wsUrl, auth.activeAccountId, auth.authState, auth.accounts, auth.activeAccount]);
+  }, [theme, auth]);
 
   // Listen for messages from sub-app iframes
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (e.data?.type === 'PREVIEW_READY') {
-        pushToIframe(iframeRef.current);
+        // New iframe is up and asking for state — give it a freshly-minted OTP.
+        pushToIframe(iframeRef.current, true);
       }
       // Sub-app reports its own *internal* pathname (e.g. /reports). Mirror it into
       // the shell address bar as /digits/reports so the URL + back button stay correct.
