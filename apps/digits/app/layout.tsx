@@ -10,8 +10,8 @@ import './custom.css';
 export function generateMetadata(): Metadata {
   const faviconUri = buildFaviconUri();
   return {
-    title: 'Binarymatix — Digits',
-    description: 'Binarymatix digits trading',
+    title: 'Binary Matix — Digits',
+    description: 'Binary Matix digits trading',
     ...(faviconUri ? { icons: { icon: faviconUri } } : {}),
   };
 }

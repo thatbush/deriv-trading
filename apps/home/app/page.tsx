@@ -94,7 +94,7 @@ export default function Home() {
         <div className="max-w-3xl mx-auto">
           <p className="text-xs text-zinc-400 leading-relaxed">
             <span className="font-semibold text-zinc-500">Risk disclosure.</span>{' '}
-            Trading derivatives involves a high level of risk and may not be suitable for all investors. You could lose more than your initial investment. Past performance is not indicative of future results. Only trade with money you can afford to lose. Binarymatix does not provide investment advice.
+            Trading derivatives involves a high level of risk and may not be suitable for all investors. You could lose more than your initial investment. Past performance is not indicative of future results. Only trade with money you can afford to lose. Binary Matix does not provide investment advice.
           </p>
         </div>
       </section>

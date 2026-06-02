@@ -6,7 +6,7 @@ export default function About() {
       <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col gap-3">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-lg font-bold text-[var(--foreground)]">Binarymatix</h1>
+            <h1 className="text-lg font-bold text-[var(--foreground)]">Binary Matix</h1>
             <p className="text-xs text-zinc-400">Last updated: June 2026</p>
           </div>
           <span className="text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full px-3 py-1">
@@ -77,7 +77,7 @@ export default function About() {
 
       {/* Footer */}
       <p className="text-center text-xs text-zinc-400 pb-4">
-        © 2026 Binarymatix. Powered by Deriv API.
+        © 2026 Binary Matix. Powered by Deriv API.
       </p>
 
     </div>

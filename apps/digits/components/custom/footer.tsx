@@ -2,7 +2,7 @@ export function Footer() {
   return (
     <footer className="w-full py-1 text-center">
       <p className="text-xs tracking-wide text-muted-foreground">
-        Powered by <span className="font-semibold text-foreground">Binarymatix</span>
+        Powered by <span className="font-semibold text-foreground">Binary Matix</span>
       </p>
     </footer>
   );

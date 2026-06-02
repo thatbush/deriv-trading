@@ -5,8 +5,8 @@ import '@/app/globals.css';
 import './custom.css';
 
 export const metadata: Metadata = {
-  title: 'Binarymatix — Analytics',
-  description: 'Binarymatix market analytics',
+  title: 'Binary Matix — Analytics',
+  description: 'Binary Matix market analytics',
   icons: { icon: '/bm-logo-w.jpeg' },
 };
 

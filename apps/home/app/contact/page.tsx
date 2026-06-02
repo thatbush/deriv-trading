@@ -61,7 +61,7 @@ export default function Contact() {
         <div className="max-w-2xl mx-auto">
           <p className="text-xs text-zinc-400 leading-relaxed">
             <span className="font-semibold text-zinc-500">Risk notice.</span>{' '}
-            Trading derivatives is risky. You can lose more than you put in. Binarymatix does not give investment advice.
+            Trading derivatives is risky. You can lose more than you put in. Binary Matix does not give investment advice.
           </p>
         </div>
       </section>

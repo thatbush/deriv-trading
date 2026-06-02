@@ -24,8 +24,8 @@ const ibmPlexSans = IBM_Plex_Sans({
 export function generateMetadata(): Metadata {
   const faviconUri = buildFaviconUri();
   return {
-    title: 'Binarymatix — Rise/Fall',
-    description: 'Binarymatix rise/fall trading',
+    title: 'Binary Matix — Rise/Fall',
+    description: 'Binary Matix rise/fall trading',
     ...(faviconUri ? { icons: { icon: faviconUri } } : {}),
   };
 }

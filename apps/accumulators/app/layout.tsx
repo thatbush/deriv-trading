@@ -21,8 +21,8 @@ const ibmPlexSans = IBM_Plex_Sans({
 export function generateMetadata(): Metadata {
   const faviconUri = buildFaviconUri();
   return {
-    title: 'Binarymatix — Accumulators',
-    description: 'Binarymatix accumulators trading',
+    title: 'Binary Matix — Accumulators',
+    description: 'Binary Matix accumulators trading',
     ...(faviconUri ? { icons: { icon: faviconUri } } : {}),
   };
 }

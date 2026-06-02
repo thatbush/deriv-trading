@@ -6,8 +6,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Binarymatix",
-  description: "Binarymatix trading tools powered by Deriv API",
+  title: "Binary Matix",
+  description: "Binary Matix trading tools powered by Deriv API",
   icons: { icon: "/bm-logo-w.jpeg" },
 };
 

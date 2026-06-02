@@ -55,7 +55,7 @@ export function Header({
   actions,
 }: HeaderProps) {
   const [logoError, setLogoError] = useState(false);
-  const logoLetter = (appName ?? process.env.NEXT_PUBLIC_DERIV_APP_NAME ?? 'Binarymatix')
+  const logoLetter = (appName ?? process.env.NEXT_PUBLIC_DERIV_APP_NAME ?? 'Binary Matix')
     .trim()
     .charAt(0)
     .toUpperCase() || 'B';
@@ -80,7 +80,7 @@ export function Header({
           />
         )}
         <h1 className="text-lg font-semibold text-foreground hidden sm:block">
-          {process.env.NEXT_PUBLIC_DERIV_APP_NAME ?? 'Binarymatix'}
+          {process.env.NEXT_PUBLIC_DERIV_APP_NAME ?? 'Binary Matix'}
         </h1>
       </div>
       <div className="flex items-center gap-3">
