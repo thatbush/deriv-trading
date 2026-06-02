@@ -1,42 +1,26 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { SUB_APPS } from '@/lib/sub-apps';
 
-const TOOLS = [
-  {
-    label: 'Digits',
-    path: '/digits',
-    icon: '#',
+const TOOL_DESCRIPTIONS: Record<string, { description: string; detail: string }> = {
+  digits: {
     description: 'Predict the last digit of the next tick.',
     detail: 'Fast-paced, tick-by-tick trading on synthetic indices.',
-    iconBg: 'bg-emerald-100 dark:bg-emerald-950',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
-    hoverBorder: 'hover:border-emerald-500',
-    linkColor: 'text-emerald-600 dark:text-emerald-400',
   },
-  {
-    label: 'Accumulators',
-    path: '/accumulators',
-    icon: '↑',
+  accumulators: {
     description: 'Grow your stake every tick that stays in range.',
     detail: 'Compounding returns for as long as the market holds.',
-    iconBg: 'bg-violet-100 dark:bg-violet-950',
-    iconColor: 'text-violet-600 dark:text-violet-400',
-    hoverBorder: 'hover:border-violet-500',
-    linkColor: 'text-violet-600 dark:text-violet-400',
   },
-  {
-    label: 'Rise & Fall',
-    path: '/rise-fall',
-    icon: '↕',
+  'rise-fall': {
     description: 'Predict whether the market will rise or fall.',
     detail: 'Simple directional trades with defined risk and payout.',
-    iconBg: 'bg-orange-100 dark:bg-orange-950',
-    iconColor: 'text-orange-600 dark:text-orange-400',
-    hoverBorder: 'hover:border-orange-500',
-    linkColor: 'text-orange-600 dark:text-orange-400',
   },
-] as const;
+  analytics: {
+    description: 'Analyse your trading history and performance.',
+    detail: 'Charts, win rates, and streak data across all your trades.',
+  },
+};
 
 export default function Home() {
   const router = useRouter();
@@ -69,23 +53,26 @@ export default function Home() {
           Available tools
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {TOOLS.map((tool) => (
-            <button
-              key={tool.path}
-              onClick={() => router.push(tool.path)}
-              className={`group flex flex-col border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 text-left ${tool.hoverBorder} hover:shadow-sm transition-all`}
-            >
-              <div className={`w-10 h-10 rounded-xl ${tool.iconBg} flex items-center justify-center mb-4 flex-shrink-0`}>
-                <span className={`${tool.iconColor} text-lg font-bold`}>{tool.icon}</span>
-              </div>
-              <p className="font-semibold mb-1 text-[var(--foreground)]">{tool.label}</p>
-              <p className="text-sm text-zinc-500 mb-1">{tool.description}</p>
-              <p className="text-xs text-zinc-400 mb-4 flex-1">{tool.detail}</p>
-              <span className={`text-xs font-medium ${tool.linkColor} group-hover:underline`}>
-                Open →
-              </span>
-            </button>
-          ))}
+          {SUB_APPS.filter((app) => app.key !== 'analytics').map((app) => {
+            const desc = TOOL_DESCRIPTIONS[app.key];
+            return (
+              <button
+                key={app.path}
+                onClick={() => router.push(app.path)}
+                className={`group flex flex-col border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 text-left ${app.brand.hoverBorder} hover:shadow-sm transition-all`}
+              >
+                <div className={`w-10 h-10 rounded-xl ${app.brand.iconBg} flex items-center justify-center mb-4 flex-shrink-0`}>
+                  <span className={`${app.brand.linkColor} text-lg font-bold`}>{app.icon}</span>
+                </div>
+                <p className="font-semibold mb-1 text-[var(--foreground)]">{app.label}</p>
+                <p className="text-sm text-zinc-500 mb-1">{desc?.description}</p>
+                <p className="text-xs text-zinc-400 mb-4 flex-1">{desc?.detail}</p>
+                <span className={`text-xs font-medium ${app.brand.linkColor} group-hover:underline`}>
+                  Open →
+                </span>
+              </button>
+            );
+          })}
         </div>
       </section>
 

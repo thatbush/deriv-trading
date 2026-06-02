@@ -1,3 +1,12 @@
+import { SUB_APPS } from '@/lib/sub-apps';
+
+const APP_DETAILS: Record<string, string> = {
+  digits: 'Predict the last digit of the next tick',
+  accumulators: 'Compound your stake every tick in range',
+  'rise-fall': 'Simple directional trades with defined payout',
+  analytics: 'Digit stats, even/odd splits, tick history',
+};
+
 export default function About() {
   return (
     <div className="flex flex-col min-h-full bg-[var(--background)] text-[var(--foreground)] px-4 py-8 max-w-lg mx-auto w-full gap-4">
@@ -9,7 +18,7 @@ export default function About() {
             <h1 className="text-lg font-bold text-[var(--foreground)]">Binary Matix</h1>
             <p className="text-xs text-zinc-400">Last updated: June 2026</p>
           </div>
-          <span className="text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full px-3 py-1">
+          <span className="text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 rounded-full px-3 py-1">
             v1.1.0 (Beta)
           </span>
         </div>
@@ -48,17 +57,12 @@ export default function About() {
       {/* Features */}
       <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col gap-3">
         <h2 className="text-sm font-bold text-[var(--foreground)]">Key Features</h2>
-        {[
-          { icon: '#', label: 'Digits Trading', detail: 'Predict the last digit of the next tick' },
-          { icon: '↑', label: 'Accumulators', detail: 'Compound your stake every tick in range' },
-          { icon: '↕', label: 'Rise & Fall', detail: 'Simple directional trades with defined payout' },
-          { icon: '◎', label: 'Live Analytics', detail: 'Digit stats, even/odd splits, tick history' },
-        ].map((f) => (
-          <div key={f.label} className="flex items-start gap-3">
-            <span className="text-base w-6 text-center text-zinc-400 shrink-0 mt-0.5">{f.icon}</span>
+        {SUB_APPS.map((app) => (
+          <div key={app.key} className="flex items-start gap-3">
+            <span className={`text-xl w-9 h-9 flex items-center justify-center text-center shrink-0 rounded-lg ${app.brand.iconBg} ${app.brand.accent}`}>{app.icon}</span>
             <div>
-              <p className="text-sm font-semibold text-[var(--foreground)]">{f.label}</p>
-              <p className="text-xs text-zinc-400">{f.detail}</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">{app.label}</p>
+              <p className="text-xs text-zinc-400">{APP_DETAILS[app.key]}</p>
             </div>
           </div>
         ))}
@@ -68,10 +72,10 @@ export default function About() {
       <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col gap-3">
         <h2 className="text-sm font-bold text-[var(--foreground)]">Support</h2>
         <a href="mailto:support@binarymatix.com" className="flex items-center gap-2 text-sm text-zinc-500 hover:text-[var(--foreground)] transition-colors">
-          <span>✉</span> support@binarymatix.com
+          <span className={ `text-xl w-9 h-9 flex items-center justify-center text-center text-zinc-400 shrink-0 rounded-lg bg-zinc-200 dark:bg-zinc-700` }>✉</span> support@binarymatix.com
         </a>
         <a href="https://wa.me/447426734754" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-zinc-500 hover:text-[var(--foreground)] transition-colors">
-          <span>✆</span> +44 7426 734754
+          <span className={ `text-xl w-9 h-9 flex items-center justify-center text-center text-zinc-400 shrink-0 rounded-lg bg-zinc-200 dark:bg-zinc-700` }>✆</span> +44 7426 734754
         </a>
       </div>
 

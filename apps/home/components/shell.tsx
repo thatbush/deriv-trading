@@ -7,10 +7,10 @@ import { ShellHeader } from './shell-header';
 import { SUB_APPS, matchSubApp, buildIframeSrc } from '@/lib/sub-apps';
 
 const NAV_ITEMS = [
-  { label: 'Home', path: '/', icon: '⌂', accent: '' },
-  ...SUB_APPS.map((a) => ({ label: a.label, path: a.path, icon: a.icon, accent: a.accent })),
-    { label: 'About', path: '/about', icon: '❋', accent: '' },
-  { label: 'Contact', path: '/contact', icon: '✆', accent: '' }
+  { label: 'Home', path: '/', icon: '⌂', accent: '', accentDim: '' },
+  ...SUB_APPS.map((a) => ({ label: a.label, path: a.path, icon: a.icon, accent: a.brand.accent, accentDim: a.brand.accentDim })),
+  { label: 'About', path: '/about', icon: '❋', accent: '', accentDim: '' },
+  { label: 'Contact', path: '/contact', icon: '✆', accent: '', accentDim: '' },
 ];
 
 interface ShellProps {
@@ -170,7 +170,7 @@ export function Shell({ children, isDev }: ShellProps) {
                       : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white',
                   ].join(' ')}
                 >
-                  <span className={`text-base w-5 text-center ${isActive && item.accent ? item.accent : ''}`}>
+                  <span className={`text-base w-5 text-center ${item.accent ? (isActive ? item.accent : item.accentDim) : ''}`}>
                     {item.icon}
                   </span>
                   {item.label}

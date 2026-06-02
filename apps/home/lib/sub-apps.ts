@@ -16,7 +16,14 @@ export interface SubApp {
   label: string;
   path: string;
   icon: string;
-  accent: string;
+  /** Full brand color theme used on the homepage card and shell nav icon */
+  brand: {
+    accent: string;       // icon text color (active nav)
+    accentDim: string;    // icon text color (inactive nav)
+    iconBg: string;       // icon background on homepage card
+    hoverBorder: string;  // hover border on homepage card
+    linkColor: string;    // "Open →" link color on homepage card
+  };
   /** Dev origin (own dev server) */
   devOrigin: string;
   /** Production origin (dedicated Vercel deployment) */
@@ -29,7 +36,14 @@ export const SUB_APPS: SubApp[] = [
     label: 'Digits',
     path: '/digits',
     icon: '#',
-    accent: 'text-emerald-400',
+    brand: {
+      // primary: rgb(0 81 255) — blue
+      accent: 'text-blue-500',
+      accentDim: 'text-blue-700 dark:text-blue-600',
+      iconBg: 'bg-blue-100 dark:bg-blue-950',
+      hoverBorder: 'hover:border-blue-500',
+      linkColor: 'text-blue-600 dark:text-blue-400',
+    },
     devOrigin: 'http://localhost:3003',
     prodOrigin: 'https://binarymatix.vercel.app',
   },
@@ -38,7 +52,14 @@ export const SUB_APPS: SubApp[] = [
     label: 'Accumulators',
     path: '/accumulators',
     icon: '↑',
-    accent: 'text-violet-400',
+    brand: {
+      // primary: rgb(255 174 38) — amber
+      accent: 'text-amber-400',
+      accentDim: 'text-amber-600 dark:text-amber-500',
+      iconBg: 'bg-amber-100 dark:bg-amber-950',
+      hoverBorder: 'hover:border-amber-400',
+      linkColor: 'text-amber-600 dark:text-amber-400',
+    },
     devOrigin: 'http://localhost:3001',
     prodOrigin: 'https://deriv-trading.vercel.app',
   },
@@ -47,7 +68,14 @@ export const SUB_APPS: SubApp[] = [
     label: 'Rise & Fall',
     path: '/rise-fall',
     icon: '↕',
-    accent: 'text-orange-400',
+    brand: {
+      // primary: rgb(0 195 144) — emerald
+      accent: 'text-emerald-400',
+      accentDim: 'text-emerald-600 dark:text-emerald-500',
+      iconBg: 'bg-emerald-100 dark:bg-emerald-950',
+      hoverBorder: 'hover:border-emerald-400',
+      linkColor: 'text-emerald-600 dark:text-emerald-400',
+    },
     devOrigin: 'http://localhost:3002',
     prodOrigin: 'https://deriv-trading-rise-fall.vercel.app',
   },
@@ -56,7 +84,14 @@ export const SUB_APPS: SubApp[] = [
     label: 'Analytics',
     path: '/analytics',
     icon: '◎',
-    accent: 'text-sky-400',
+    brand: {
+      // primary: rgb(0 81 255) — blue (same as digits)
+      accent: 'text-blue-500',
+      accentDim: 'text-blue-700 dark:text-blue-600',
+      iconBg: 'bg-blue-100 dark:bg-blue-950',
+      hoverBorder: 'hover:border-blue-500',
+      linkColor: 'text-blue-600 dark:text-blue-400',
+    },
     devOrigin: 'http://localhost:3004',
     // TODO: replace with your Vercel deployment URL after creating the analytics project
     prodOrigin: 'https://binarymatix-analytics.vercel.app',
