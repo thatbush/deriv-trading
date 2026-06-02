@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 export function EnvCheck() {
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true') return;
+    if (process.env.NEXT_PUBLIC_NO_AUTH === 'true') return;
     if (window.location.pathname.includes('/preview')) return;
     if (!process.env.NEXT_PUBLIC_DERIV_APP_ID || !process.env.NEXT_PUBLIC_DERIV_REDIRECT_URI) {
       toast.warning('Waiting for environment variables to be set…');
