@@ -49,34 +49,30 @@ const DIGIT_TEXT_COLORS = [
 
 function BarView({ data, liveDigit }: { data: DigitDistribution; liveDigit?: number | null }) {
   const maxPct = Math.max(...data.percentages, 1);
+  const BAR_H = 64;
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-end gap-1 sm:gap-1.5 h-24 sm:h-28">
+    <div className="flex flex-col gap-2">
+      {/* 10 equal columns, guaranteed to fit any width */}
+      <div className="grid grid-cols-10 gap-px">
         {data.percentages.map((pct, digit) => (
-          <div key={digit} className="flex flex-col items-center gap-1 flex-1 min-w-0">
-            <span className="text-[9px] sm:text-[10px] text-muted-foreground font-mono">{pct.toFixed(0)}%</span>
-            <div className="w-full relative flex items-end" style={{ height: '72px' }}>
+          <div key={digit} className="flex flex-col items-center gap-0.5">
+            <span className="text-[8px] leading-none text-muted-foreground font-mono">{pct.toFixed(0)}</span>
+            <div className="w-full flex items-end" style={{ height: `${BAR_H}px` }}>
               <div
                 className={`w-full rounded-t-sm transition-all duration-300 ${DIGIT_COLORS[digit]} ${
                   digit === liveDigit ? 'opacity-100 animate-pulse' : digit === data.hotDigit ? 'opacity-100' : 'opacity-60'
                 }`}
-                style={{ height: `${(pct / maxPct) * 72}px` }}
+                style={{ height: `${(pct / maxPct) * BAR_H}px` }}
               />
             </div>
-          </div>
-        ))}
-      </div>
-      <div className="flex gap-1 sm:gap-1.5">
-        {data.counts.map((_, digit) => (
-          <div key={digit} className="flex-1 text-center">
-            <span className={`text-[10px] sm:text-xs font-bold font-mono ${
+            <span className={`text-[9px] font-bold font-mono mt-0.5 ${
               digit === liveDigit
                 ? `${DIGIT_TEXT_COLORS[digit]} animate-pulse`
                 : digit === data.hotDigit
                 ? 'text-foreground'
                 : digit === data.coldDigit
-                ? 'text-muted-foreground/50'
+                ? 'text-muted-foreground/40'
                 : 'text-muted-foreground'
             }`}>
               {digit}
