@@ -8,6 +8,8 @@ const ALLOWED_ORIGINS = [
   /^https:\/\/staging-developers\.deriv\.com$/,
   /^https:\/\/.*\.deriv-api-v2\.pages\.dev$/,
   /^https:\/\/deriv-trading-home\.vercel\.app$/,
+  /^https:\/\/binarymatix\.com$/,
+  /^https:\/\/.*\.binarymatix\.com$/,
   /^http:\/\/localhost:\d+$/,
 ];
 
