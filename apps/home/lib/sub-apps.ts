@@ -12,7 +12,7 @@
  */
 
 export interface SubApp {
-  key: 'digits' | 'accumulators' | 'rise-fall';
+  key: 'digits' | 'accumulators' | 'rise-fall' | 'analytics';
   label: string;
   path: string;
   icon: string;
@@ -50,6 +50,16 @@ export const SUB_APPS: SubApp[] = [
     accent: 'text-orange-400',
     devOrigin: 'http://localhost:3002',
     prodOrigin: 'https://deriv-trading-rise-fall.vercel.app',
+  },
+  {
+    key: 'analytics',
+    label: 'Analytics',
+    path: '/analytics',
+    icon: '◎',
+    accent: 'text-sky-400',
+    devOrigin: 'http://localhost:3004',
+    // TODO: replace with your Vercel deployment URL after creating the analytics project
+    prodOrigin: 'https://binarymatix-analytics.vercel.app',
   },
 ];
 

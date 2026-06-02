@@ -52,6 +52,8 @@ function RiseFallPage() {
       onLogout={logout}
       onSwitchAccount={switchAccount}
       logoSrc={logoSrc}
+      prices={trading.prices}
+      pipSize={trading.pipSize}
       ws={trading.ws}
       isConnected={trading.isConnected}
       isLoading={trading.isLoading}

@@ -15,6 +15,7 @@ import type {
   ProposalInfo,
   BuyResult,
 } from '../lib/types';
+import { InsightPanel } from './insight-panel';
 
 interface TradeControlsProps {
   tradeType: TradeType;
@@ -35,6 +36,9 @@ interface TradeControlsProps {
   buyError: string | null;
   onClearBuyResult: () => void;
   isAuthenticated?: boolean;
+  /** Live tick prices for inline market insight panel. */
+  prices?: number[];
+  pipSize?: number;
 }
 
 const CONTRACT_MODE_OPTIONS: Record<TradeType, { value: ContractMode; label: string }[]> = {
@@ -92,6 +96,8 @@ export function TradeControls({
   buyError,
   onClearBuyResult,
   isAuthenticated,
+  prices = [],
+  pipSize = 2,
 }: TradeControlsProps) {
   useEffect(() => {
     if (buyError) {
@@ -218,6 +224,8 @@ export function TradeControls({
           <Link href="/reports">View your positions →</Link>
         </Button>
       )}
+
+      <InsightPanel prices={prices} pipSize={pipSize} />
     </div>
   );
 }

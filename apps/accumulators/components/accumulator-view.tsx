@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 import { useContractMarkers } from '@/hooks/use-contract-markers';
 import { TradeControls } from './trade-controls';
+import { InsightPanel } from './insight-panel';
 import type { ChartBarrier } from '@/components/custom/smart-chart';
 import type {
   AuthState,
@@ -85,6 +86,9 @@ export interface AccumulatorViewProps {
   // Branding (used by preview route; no-op in the real app)
   logoSrc?: string;
   appName?: string;
+  /** Raw tick prices for the inline market insight panel. */
+  prices?: number[];
+  pipSize?: number;
 }
 
 export function AccumulatorView({
@@ -125,6 +129,8 @@ export function AccumulatorView({
   endEpoch,
   logoSrc,
   appName,
+  prices = [],
+  pipSize = 2,
 }: AccumulatorViewProps) {
   const isMobile = useIsMobile();
   const contractMarkers = useContractMarkers(openPositions, activeSymbol?.underlying_symbol, isMobile);
@@ -231,6 +237,7 @@ export function AccumulatorView({
                     isClosing={sellingId === activeAccuPosition?.contract_id}
                     isAuthenticated={authState === 'authenticated'}
                   />
+                  <InsightPanel prices={prices} pipSize={pipSize} />
                 </CardContent>
               </Card>
             )}

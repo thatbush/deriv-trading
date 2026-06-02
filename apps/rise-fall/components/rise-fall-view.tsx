@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 import { useContractMarkers } from '@/hooks/use-contract-markers';
 import { TradeControls } from './trade-controls';
+import { InsightPanel } from './insight-panel';
 import type {
   AuthState,
   DerivAccount,
@@ -94,6 +95,8 @@ export interface RiseFallViewProps {
   // Branding (used by preview route; no-op in the real app)
   logoSrc?: string;
   appName?: string;
+  prices?: number[];
+  pipSize?: number;
 }
 
 export function RiseFallView({
@@ -141,6 +144,8 @@ export function RiseFallView({
   endEpoch,
   logoSrc,
   appName,
+  prices = [],
+  pipSize = 2,
 }: RiseFallViewProps) {
   const isMobile = useIsMobile();
   const contractMarkers = useContractMarkers(openPositions, activeSymbol?.underlying_symbol, isMobile);
@@ -230,6 +235,7 @@ export function RiseFallView({
                     onClearBuyResult={clearBuyResult}
                     isAuthenticated={authState === 'authenticated'}
                   />
+                  <InsightPanel prices={prices} pipSize={pipSize} />
                 </CardContent>
               </Card>
             )}

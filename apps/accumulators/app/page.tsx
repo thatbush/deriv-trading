@@ -52,6 +52,8 @@ function AccumulatorPage() {
       onLogout={logout}
       onSwitchAccount={switchAccount}
       logoSrc={logoSrc}
+      prices={trading.prices}
+      pipSize={trading.pipSize}
       isConnected={trading.isConnected}
       isLoading={trading.isLoading}
       error={trading.error}

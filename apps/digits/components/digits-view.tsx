@@ -47,6 +47,7 @@ export interface DigitsViewProps {
   currentTick: Tick | null;
   lastDigit: number | null;
   digitStats: DigitStats;
+  prices: number[];
   pipSize: number;
 
   // Trade controls
@@ -90,6 +91,7 @@ export function DigitsView({
   currentTick,
   lastDigit,
   digitStats,
+  prices,
   pipSize,
   tradeType,
   setTradeType,
@@ -209,6 +211,8 @@ export function DigitsView({
                         buyError={buyError}
                         onClearBuyResult={clearBuyResult}
                         isAuthenticated={authState === 'authenticated'}
+                        prices={prices}
+                        pipSize={pipSize}
                       />
                     </div>
                   </div>

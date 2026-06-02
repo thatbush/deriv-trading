@@ -79,3 +79,19 @@ export {
   useProposal,
   useBuy,
 } from './react';
+
+// Analytics
+export {
+  computeDigitDistribution,
+  computeEvenOdd,
+  computeOverUnder,
+  computeStreaks,
+  computeRollingHistory,
+} from './analytics';
+export type {
+  DigitDistribution,
+  EvenOddStats,
+  OverUnderStats,
+  StreakStats,
+  RollingHistoryEntry,
+} from './analytics';
