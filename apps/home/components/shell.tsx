@@ -29,7 +29,12 @@ export function Shell({ children, isDev }: ShellProps) {
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window === 'undefined') return 'light';
+    const stored = localStorage.getItem('bm-theme');
+    if (stored === 'light' || stored === 'dark') return stored;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
 
   // The iframe src is derived from the active app + pathname. We compute it once
   // per active app and hold it, so the sub-app's *internal* navigation (which we
@@ -48,9 +53,10 @@ export function Shell({ children, isDev }: ShellProps) {
     if (!activeApp) loadedAppKey.current = null;
   }, [activeApp, pathname, isDev]);
 
-  // Apply theme class to <html> so Tailwind dark: variants work in the shell chrome
+  // Apply theme class to <html> and persist choice
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('bm-theme', theme);
   }, [theme]);
 
   // Push theme + auth into the iframe. When `freshOtp` is true, mint a brand-new
