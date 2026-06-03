@@ -1,6 +1,9 @@
 {
   "tasks": {
-    "build": { "outputs": [".next/**"] },
+    "build": {
+      "outputs": [".next/**"],
+      "env": ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]
+    },
     "dev": { "cache": false }
   }
 }
