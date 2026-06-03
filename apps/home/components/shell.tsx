@@ -25,7 +25,7 @@ export function Shell({ children, isDev }: ShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { tenant, ready } = useTenantLoader();
-  const auth = useAuth(tenant);
+  const auth = useAuth(tenant, ready);
 
   // Only show sub-apps the tenant has enabled
   const navItems = useMemo(() => [

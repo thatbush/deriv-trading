@@ -62,7 +62,7 @@ export interface UseAuthReturn {
   error: string | null;
 }
 
-export function useAuth(tenant: TenantConfig): UseAuthReturn {
+export function useAuth(tenant: TenantConfig, tenantReady = true): UseAuthReturn {
   const [authState, setAuthState] = useState<AuthState>(() => {
     if (typeof window === 'undefined') return 'unauthenticated';
     if (getAuthInfo()) return 'authenticated';
@@ -127,7 +127,7 @@ export function useAuth(tenant: TenantConfig): UseAuthReturn {
   // Waits until tenant.appId is present so the correct clientId is used — prevents
   // the OAuth PKCE verification racing against the tenant config fetch.
   useEffect(() => {
-    if (!tenant.appId || initRef.current) return;
+    if (!tenantReady || !tenant.appId || initRef.current) return;
     initRef.current = true;
 
     const init = async () => {
@@ -210,7 +210,7 @@ export function useAuth(tenant: TenantConfig): UseAuthReturn {
     };
 
     init();
-  }, [tenant.appId, completeAuth, fetchOTPUrl]);
+  }, [tenantReady, tenant.appId, completeAuth, fetchOTPUrl]);
 
   // Keep ref in sync so visibility handler always has the current account ID
   useEffect(() => {
