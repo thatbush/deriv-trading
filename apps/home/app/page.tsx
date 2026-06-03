@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SUB_APPS } from '@/lib/sub-apps';
-import { useAuth } from '@/hooks/use-auth';
+import { useTenant } from '@/hooks/use-tenant';
 
 const TOOL_DESCRIPTIONS: Record<string, { description: string; detail: string }> = {
   digits: {
@@ -107,7 +107,7 @@ const FEATURES = [
     iconColor: 'text-pink-600 dark:text-pink-400',
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
     title: 'Zero fees',
-    body: 'Binary Matix is completely free. Your only cost is the stake you put into each trade.',
+    body: 'The platform is completely free. Your only cost is the stake you put into each trade.',
   },
 ];
 
@@ -122,7 +122,7 @@ const FAQ: Array<{
 }> = [
   {
     q: 'Do I need a Deriv account?',
-    a: "Yes. Binary Matix connects to your Deriv account via their official OAuth system. You're redirected to Deriv to log in — we never see your password.",
+    a: "Yes. This platform connects to your Deriv account via their official OAuth system. You're redirected to Deriv to log in — we never see your password.",
     iconBg: 'bg-yellow-50 dark:bg-yellow-950',
     iconColor: 'text-yellow-600 dark:text-yellow-400',
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" /></svg>,
@@ -152,14 +152,14 @@ const FAQ: Array<{
   },
   {
     q: 'Are my funds safe?',
-    a: 'Your funds stay in your Deriv account at all times. Binary Matix never holds or moves money — it only places trades via the access you grant.',
+    a: 'Your funds stay in your Deriv account at all times. This platform never holds or moves money — it only places trades via the access you grant.',
     iconBg: 'bg-violet-50 dark:bg-violet-950',
     iconColor: 'text-violet-600 dark:text-violet-400',
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>,
   },
   {
     q: 'Is there a mobile app?',
-    a: 'Binary Matix is a progressive web app. Open it in any browser on iOS or Android and add it to your home screen — no app store needed.',
+    a: 'This is a progressive web app. Open it in any browser on iOS or Android and add it to your home screen — no app store needed.',
     iconBg: 'bg-sky-50 dark:bg-sky-950',
     iconColor: 'text-sky-600 dark:text-sky-400',
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3" /></svg>,
@@ -168,7 +168,7 @@ const FAQ: Array<{
 
 function FaqSection() {
   const [open, setOpen] = useState<string | null>(null);
-  const { signUp } = useAuth();
+  const tenant = useTenant();
 
   return (
     <section className="px-6 pb-20 max-w-3xl mx-auto w-full">
@@ -226,13 +226,15 @@ function FaqSection() {
                   <p className={`text-sm leading-relaxed font-light ${isPinned ? 'text-orange-700/80 dark:text-orange-300/80' : 'text-zinc-500 dark:text-zinc-400'}`}>
                     {item.a}
                   </p>
-                  {item.cta && (
-                    <button
-                      onClick={() => signUp()}
+                  {item.cta && tenant.faqAffiliateLink && (
+                    <a
+                      href={tenant.faqAffiliateLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
                     >
                       {item.cta.label} →
-                    </button>
+                    </a>
                   )}
                 </div>
               )}
@@ -246,6 +248,7 @@ function FaqSection() {
 
 export default function Home() {
   const router = useRouter();
+  const tenant = useTenant();
 
   return (
     <div className="flex flex-col min-h-full bg-[var(--background)] text-[var(--foreground)]">
@@ -278,14 +281,16 @@ export default function Home() {
           >
             Start trading
           </button>
-          <a
-            href="https://partners.deriv.com/rx?sidc=D9666FA0-8DB9-456A-AC4B-93AB866CCD13&utm_campaign=dynamicworks&utm_medium=affiliate&utm_source=CU60461"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-6 py-2.5 rounded-full border border-zinc-300 dark:border-zinc-700 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:border-zinc-400 dark:hover:border-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
-          >
-            Become an affiliate
-          </a>
+          {tenant.affiliateLink && (
+            <a
+              href={tenant.affiliateLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-2.5 rounded-full border border-zinc-300 dark:border-zinc-700 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:border-zinc-400 dark:hover:border-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
+            >
+              Become an affiliate
+            </a>
+          )}
         </div>
 
         {/* Stats — inline, no boxes */}
@@ -419,19 +424,21 @@ export default function Home() {
         <div className="rounded-2xl bg-zinc-900 dark:bg-zinc-100 p-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
           <div className="flex-1">
             <p className="text-[11px] font-medium tracking-widest uppercase text-zinc-400 dark:text-zinc-500 mb-2">Affiliate programme</p>
-            <p className="text-lg font-semibold text-white dark:text-zinc-900 mb-1">Earn with Binary Matix.</p>
+            <p className="text-lg font-semibold text-white dark:text-zinc-900 mb-1">Earn with {tenant.brandName}.</p>
             <p className="text-sm text-zinc-400 dark:text-zinc-600 font-light leading-relaxed">
               Refer traders to Deriv through our affiliate programme and earn commission on every trade they make. No cap, no expiry.
             </p>
           </div>
-          <a
-            href="https://partners.deriv.com/rx?sidc=D9666FA0-8DB9-456A-AC4B-93AB866CCD13&utm_campaign=dynamicworks&utm_medium=affiliate&utm_source=CU60461"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 px-6 py-2.5 rounded-full bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-          >
-            Join now →
-          </a>
+          {tenant.affiliateLink && (
+            <a
+              href={tenant.affiliateLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 px-6 py-2.5 rounded-full bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+              Join now →
+            </a>
+          )}
         </div>
       </section>
 

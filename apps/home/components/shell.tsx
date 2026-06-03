@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { ShellHeader } from './shell-header';
 import { SUB_APPS, matchSubApp, buildIframeSrc } from '@/lib/sub-apps';
+import { TenantContext, useTenantLoader } from '@/hooks/use-tenant';
 
-const NAV_ITEMS = [
+const STATIC_NAV_START = [
   { label: 'Home', path: '/', icon: '⌂', accent: 'text-zinc-400', accentDim: 'text-zinc-600 dark:text-zinc-500' },
-  ...SUB_APPS.map((a) => ({ label: a.label, path: a.path, icon: a.icon, accent: a.brand.accent, accentDim: a.brand.accentDim })),
+];
+const STATIC_NAV_END = [
   { label: 'Bots', path: '/bots', icon: '⚙', accent: 'text-violet-400', accentDim: 'text-violet-600 dark:text-violet-500' },
   { label: 'About', path: '/about', icon: '❋', accent: 'text-pink-400', accentDim: 'text-pink-600 dark:text-pink-500' },
   { label: 'Contact', path: '/contact', icon: '✆', accent: 'text-sky-400', accentDim: 'text-sky-600 dark:text-sky-500' },
@@ -22,7 +24,17 @@ interface ShellProps {
 export function Shell({ children, isDev }: ShellProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const auth = useAuth();
+  const { tenant, ready } = useTenantLoader();
+  const auth = useAuth(tenant);
+
+  // Only show sub-apps the tenant has enabled
+  const navItems = useMemo(() => [
+    ...STATIC_NAV_START,
+    ...SUB_APPS
+      .filter((a) => tenant.enabledApps.includes(a.key))
+      .map((a) => ({ label: a.label, path: a.path, icon: a.icon, accent: a.brand.accent, accentDim: a.brand.accentDim })),
+    ...STATIC_NAV_END,
+  ], [tenant.enabledApps]);
 
   const activeApp = matchSubApp(pathname);
   const isSubApp = activeApp !== null;
@@ -59,12 +71,17 @@ export function Shell({ children, isDev }: ShellProps) {
     localStorage.setItem('bm-theme', theme);
   }, [theme]);
 
-  // Push theme + auth into the iframe. When `freshOtp` is true, mint a brand-new
-  // single-use OTP for this iframe instead of reusing the stored (possibly spent)
-  // wsUrl — required whenever a new iframe is opening an authenticated socket.
+  // Push theme + branding + auth into the iframe. When `freshOtp` is true, mint a
+  // brand-new single-use OTP for this iframe instead of reusing the stored wsUrl.
   const pushToIframe = useCallback(async (iframe: HTMLIFrameElement | null, freshOtp = false) => {
     if (!iframe?.contentWindow) return;
-    iframe.contentWindow.postMessage({ type: 'PREVIEW_BRANDING', theme }, '*');
+    iframe.contentWindow.postMessage({
+      type: 'PREVIEW_BRANDING',
+      theme,
+      primaryColor: tenant.primaryColor,
+      appName: tenant.brandName,
+      logo: tenant.logoUrl ?? undefined,
+    }, '*');
 
     let wsUrl = auth.wsUrl;
     if (freshOtp && auth.authState === 'authenticated') {
@@ -80,14 +97,15 @@ export function Shell({ children, isDev }: ShellProps) {
       accounts: auth.accounts,
       activeAccount: auth.activeAccount,
     }, '*');
-  }, [theme, auth]);
+  }, [theme, tenant, auth]);
 
   // Listen for messages from sub-app iframes
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (e.data?.type === 'PREVIEW_READY') {
         // New iframe is up and asking for state — give it a freshly-minted OTP.
-        pushToIframe(iframeRef.current, true);
+        // Only push once tenant config is resolved so branding is correct.
+        if (ready) pushToIframe(iframeRef.current, true);
       }
       // Sub-app reports its own *internal* pathname (e.g. /reports). Mirror it into
       // the shell address bar as /digits/reports so the URL + back button stay correct.
@@ -105,7 +123,7 @@ export function Shell({ children, isDev }: ShellProps) {
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [pushToIframe, router, activeApp, pathname, auth]);
+  }, [pushToIframe, router, activeApp, pathname, auth, ready]);
 
   // Re-push whenever auth or theme changes (iframe already mounted)
   useEffect(() => {
@@ -120,6 +138,7 @@ export function Shell({ children, isDev }: ShellProps) {
   const activeNavPath = activeApp?.path ?? pathname;
 
   return (
+    <TenantContext.Provider value={tenant}>
     <div className="flex flex-col h-dvh bg-[var(--background)] text-[var(--foreground)] overflow-hidden">
       <ShellHeader
         authState={auth.authState}
@@ -164,7 +183,7 @@ export function Shell({ children, isDev }: ShellProps) {
           </div>
 
           <div className="flex flex-col gap-1 p-3 flex-1">
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               const isActive = activeNavPath === item.path;
               return (
                 <button
@@ -208,5 +227,6 @@ export function Shell({ children, isDev }: ShellProps) {
         </main>
       </div>
     </div>
+    </TenantContext.Provider>
   );
 }

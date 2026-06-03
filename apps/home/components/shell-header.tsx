@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import type { AuthState, DerivAccount } from '@deriv/core';
+import { useTenant } from '@/hooks/use-tenant';
 
 interface ShellHeaderProps {
   authState: AuthState;
@@ -34,6 +35,7 @@ export function ShellHeader({
   onThemeToggle,
 }: ShellHeaderProps) {
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const tenant = useTenant();
   const isAuthenticated = authState === 'authenticated';
   const isAuthenticating = authState === 'authenticating';
 
@@ -49,8 +51,12 @@ export function ShellHeader({
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <Image src="/bm-logo-w.jpeg" alt="Binary Matix" width={28} height={28} className="rounded object-contain" />
-        <span className="font-semibold text-sm text-zinc-900 dark:text-white tracking-wide hidden sm:block">Binary Matix</span>
+        {tenant.logoUrl ? (
+          <Image src={tenant.logoUrl} alt={tenant.brandName} width={28} height={28} className="rounded object-contain" />
+        ) : (
+          <Image src="/bm-logo-w.jpeg" alt={tenant.brandName} width={28} height={28} className="rounded object-contain" />
+        )}
+        <span className="font-semibold text-sm text-zinc-900 dark:text-white tracking-wide hidden sm:block">{tenant.brandName}</span>
       </div>
 
       <div className="flex items-center gap-2">

@@ -1,13 +1,3 @@
 {
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "frame-ancestors https://deriv-trading-home.vercel.app https://binarymatix.com https://*.binarymatix.com http://localhost:*"
-        }
-      ]
-    }
-  ]
+  "headers": []
 }

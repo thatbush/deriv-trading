@@ -1,20 +1,14 @@
-import type { Metadata } from 'next';
-import { PageFooter } from '@/components/page-footer';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Contact',
-  description:
-    'Get in touch with Binary Matix. Reach us by email at support@binarymatix.com or via WhatsApp for trading support and feedback.',
-  alternates: { canonical: 'https://binarymatix.com/contact' },
-  openGraph: {
-    url: 'https://binarymatix.com/contact',
-    title: 'Contact | Binary Matix',
-    description:
-      'Get in touch with Binary Matix by email or WhatsApp. We usually reply within a day.',
-  },
-};
+import { PageFooter } from '@/components/page-footer';
+import { useTenant } from '@/hooks/use-tenant';
 
 export default function Contact() {
+  const tenant = useTenant();
+  const email = tenant.supportEmail ?? 'support@binarymatix.com';
+  const whatsapp = tenant.supportWhatsapp ?? 'https://wa.me/447426734754';
+  const whatsappDisplay = whatsapp.replace('https://wa.me/', '+').replace(/(\d{2})(\d+)/, '$1 $2');
+
   return (
     <div className="flex flex-col min-h-full bg-[var(--background)] text-[var(--foreground)] pb-14">
 
@@ -26,12 +20,12 @@ export default function Contact() {
           Say hello.
         </h1>
         <p className="text-sm text-zinc-500 mb-10 leading-relaxed">
-          Whether it's a question, an issue, or just feedback, feel free to reach out.
+          Whether it&apos;s a question, an issue, or just feedback, feel free to reach out.
         </p>
 
         <div className="flex flex-col gap-4">
           <a
-            href="mailto:support@binarymatix.com"
+            href={`mailto:${email}`}
             className="group flex items-center gap-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 hover:border-sky-400 dark:hover:border-sky-600 transition-colors"
           >
             <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950 flex items-center justify-center flex-shrink-0">
@@ -39,14 +33,12 @@ export default function Contact() {
             </div>
             <div>
               <p className="text-xs font-semibold tracking-widest uppercase text-zinc-400 mb-0.5">Email</p>
-              <p className="text-sm font-medium text-[var(--foreground)] group-hover:underline">
-                support@binarymatix.com
-              </p>
+              <p className="text-sm font-medium text-[var(--foreground)] group-hover:underline">{email}</p>
             </div>
           </a>
 
           <a
-            href="https://wa.me/447426734754"
+            href={whatsapp}
             target="_blank"
             rel="noopener noreferrer"
             className="group flex items-center gap-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 hover:border-emerald-400 dark:hover:border-emerald-600 transition-colors"
@@ -56,9 +48,7 @@ export default function Contact() {
             </div>
             <div>
               <p className="text-xs font-semibold tracking-widest uppercase text-zinc-400 mb-0.5">WhatsApp / Phone</p>
-              <p className="text-sm font-medium text-[var(--foreground)] group-hover:underline">
-                +44 7426 734754
-              </p>
+              <p className="text-sm font-medium text-[var(--foreground)] group-hover:underline">{whatsappDisplay}</p>
             </div>
           </a>
         </div>
@@ -72,7 +62,7 @@ export default function Contact() {
           <div>
             <p className="text-xs font-semibold tracking-widest uppercase text-zinc-400 mb-1">Response time</p>
             <p className="text-sm text-zinc-500 leading-relaxed">
-              We usually reply within a day. If it's urgent, WhatsApp is quicker.
+              We usually reply within a day. If it&apos;s urgent, WhatsApp is quicker.
             </p>
           </div>
         </div>

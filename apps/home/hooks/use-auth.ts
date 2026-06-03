@@ -19,24 +19,20 @@ import {
   parseReferralLink,
 } from '@deriv/core';
 import type { AuthInfo, DerivAccount, AuthState, AuthConfig } from '@deriv/core';
+import type { TenantConfig } from '@/lib/tenant-types';
 
-function getAuthConfig(): AuthConfig {
+function buildAuthConfig(tenant: TenantConfig): AuthConfig {
   const config: AuthConfig = {
-    clientId: process.env.NEXT_PUBLIC_DERIV_APP_ID ?? '',
-    redirectUri:
-      process.env.NEXT_PUBLIC_DERIV_REDIRECT_URI ??
-      (typeof window !== 'undefined' ? window.location.origin : ''),
+    clientId: tenant.appId,
+    redirectUri: tenant.redirectUri,
   };
 
-  // Convert comma-separated scopes to space-separated (OAuth spec)
-  const scopesEnv = process.env.NEXT_PUBLIC_DERIV_OAUTH_SCOPES ?? '';
-  if (scopesEnv) {
-    config.scopes = scopesEnv.split(',').map((s) => s.trim()).join(' ');
+  if (tenant.scopes) {
+    config.scopes = tenant.scopes.split(',').map((s) => s.trim()).join(' ');
   }
 
-  const referralLink = process.env.NEXT_PUBLIC_DERIV_REFERRAL_LINK ?? '';
-  if (referralLink) {
-    const referral = parseReferralLink(referralLink);
+  if (tenant.faqAffiliateLink) {
+    const referral = parseReferralLink(tenant.faqAffiliateLink);
     if (referral) {
       config.affiliateToken      = referral.affiliateToken;
       config.affiliateTokenParam = referral.affiliateTokenParam;
@@ -66,7 +62,7 @@ export interface UseAuthReturn {
   error: string | null;
 }
 
-export function useAuth(): UseAuthReturn {
+export function useAuth(tenant: TenantConfig): UseAuthReturn {
   const [authState, setAuthState] = useState<AuthState>(() => {
     if (typeof window === 'undefined') return 'unauthenticated';
     if (getAuthInfo()) return 'authenticated';
@@ -92,8 +88,8 @@ export function useAuth(): UseAuthReturn {
 
   // Fetch OTP WebSocket URL for an account
   const fetchOTPUrl = useCallback(async (accountId: string, authInfo: AuthInfo): Promise<string> => {
-    return getWebSocketOTP(accountId, authInfo, getAuthConfig().clientId);
-  }, []);
+    return getWebSocketOTP(accountId, authInfo, buildAuthConfig(tenant).clientId);
+  }, [tenant]);
 
   // Fetch a FRESH single-use OTP WebSocket URL for the current account.
   // OTP URLs are consumed on connect, so each iframe that wants to open an
@@ -113,7 +109,7 @@ export function useAuth(): UseAuthReturn {
 
   // Complete auth: fetch accounts → get OTP → set WS URL
   const completeAuth = useCallback(async (authInfo: AuthInfo) => {
-    const fetchedAccounts = await fetchAccounts(authInfo, getAuthConfig().clientId);
+    const fetchedAccounts = await fetchAccounts(authInfo, buildAuthConfig(tenant).clientId);
     setAccounts(fetchedAccounts);
 
     if (fetchedAccounts.length > 0) {
@@ -125,11 +121,13 @@ export function useAuth(): UseAuthReturn {
     }
 
     setAuthState('authenticated');
-  }, [fetchOTPUrl]);
+  }, [tenant, fetchOTPUrl]);
 
-  // Initialize: check for OAuth callback or existing session
+  // Initialize: check for OAuth callback or existing session.
+  // Waits until tenant.appId is present so the correct clientId is used — prevents
+  // the OAuth PKCE verification racing against the tenant config fetch.
   useEffect(() => {
-    if (initRef.current) return;
+    if (!tenant.appId || initRef.current) return;
     initRef.current = true;
 
     const init = async () => {
@@ -140,7 +138,12 @@ export function useAuth(): UseAuthReturn {
       if (code) {
         setAuthState('authenticating');
         try {
-          const authInfo = await handleOAuthCallback(window.location.href, getAuthConfig());
+          const authInfo = await handleOAuthCallback(window.location.href, buildAuthConfig(tenant));
+          // Strip ?code= from the URL immediately so a soft navigation back to /
+          // doesn't re-trigger this handler with a spent code.
+          url.searchParams.delete('code');
+          url.searchParams.delete('state');
+          window.history.replaceState({}, '', url.toString());
           await completeAuth(authInfo);
         } catch (err) {
           setError(err instanceof Error ? err.message : 'Authentication failed');
@@ -167,7 +170,7 @@ export function useAuth(): UseAuthReturn {
           try {
             const refreshed = await refreshAccessToken(
               storedAuth.refresh_token,
-              getAuthConfig().clientId
+              buildAuthConfig(tenant).clientId
             );
             await completeAuth(refreshed);
           } catch {
@@ -207,7 +210,7 @@ export function useAuth(): UseAuthReturn {
     };
 
     init();
-  }, [completeAuth, fetchOTPUrl]);
+  }, [tenant.appId, completeAuth, fetchOTPUrl]);
 
   // Keep ref in sync so visibility handler always has the current account ID
   useEffect(() => {
@@ -249,13 +252,13 @@ export function useAuth(): UseAuthReturn {
 
   // Phase 1: Initiate login — standard PKCE flow, no attribution params
   const login = useCallback(async () => {
-    await initiateLogin(getAuthConfig());
-  }, []);
+    await initiateLogin(buildAuthConfig(tenant));
+  }, [tenant]);
 
   // Initiate sign-up — adds prompt=registration and partner attribution params
   const signUp = useCallback(async () => {
-    await initiateSignUp(getAuthConfig());
-  }, []);
+    await initiateSignUp(buildAuthConfig(tenant));
+  }, [tenant]);
 
   // Logout: close WS (handled by useDerivWS cleanup), clear storage, reset state
   const logout = useCallback(() => {
