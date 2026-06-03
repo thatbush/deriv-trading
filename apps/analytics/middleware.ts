@@ -14,7 +14,10 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes — matches shell Cache-Control
 async function getAllowedDomains(): Promise<string[]> {
   if (cachedDomains && Date.now() < cacheExpiresAt) return cachedDomains;
   try {
-    const res = await fetch(SHELL_DOMAINS_URL, { next: { revalidate: 300 } });
+    const res = await fetch(SHELL_DOMAINS_URL, {
+      next: { revalidate: 300 },
+      signal: AbortSignal.timeout(3000),
+    });
     const { domains } = await res.json() as { domains: string[] };
     cachedDomains = domains;
     cacheExpiresAt = Date.now() + CACHE_TTL_MS;
