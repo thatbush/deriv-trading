@@ -85,6 +85,8 @@ export {
   computeDigitDistribution,
   computeEvenOdd,
   computeOverUnder,
+  computeMatchDiffer,
+  computeRiseFall,
   computeStreaks,
   computeRollingHistory,
 } from './analytics';
@@ -92,6 +94,8 @@ export type {
   DigitDistribution,
   EvenOddStats,
   OverUnderStats,
+  MatchDifferStats,
+  RiseFallStats,
   StreakStats,
   RollingHistoryEntry,
 } from './analytics';

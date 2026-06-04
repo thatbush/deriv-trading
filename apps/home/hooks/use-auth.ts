@@ -128,7 +128,6 @@ export function useAuth(tenant: TenantConfig, tenantReady = true): UseAuthReturn
   // the OAuth PKCE verification racing against the tenant config fetch.
   useEffect(() => {
     if (!tenantReady || !tenant.appId || initRef.current) return;
-    initRef.current = true;
 
     const init = async () => {
       const url = new URL(window.location.href);
@@ -136,9 +135,13 @@ export function useAuth(tenant: TenantConfig, tenantReady = true): UseAuthReturn
 
       // Phase 3-5: Handle OAuth callback
       if (code) {
+        // Only lock initRef after a successful exchange — 2FA flows redirect twice
+        // (intermediate code then final code). If we lock on the first redirect and
+        // the exchange fails, the second redirect would be silently ignored.
         setAuthState('authenticating');
         try {
           const authInfo = await handleOAuthCallback(window.location.href, buildAuthConfig(tenant));
+          initRef.current = true;
           // Strip ?code= from the URL immediately so a soft navigation back to /
           // doesn't re-trigger this handler with a spent code.
           url.searchParams.delete('code');
@@ -149,9 +152,13 @@ export function useAuth(tenant: TenantConfig, tenantReady = true): UseAuthReturn
           setError(err instanceof Error ? err.message : 'Authentication failed');
           setAuthState('error');
           clearAllAuthData();
+          // Don't set initRef — allow the next redirect (e.g. 2FA second leg) to retry
         }
         return;
       }
+
+      // No code in URL — lock init so session restore only runs once
+      initRef.current = true;
 
       // Check for existing session. Read the raw (possibly-expired) auth so an
       // expired access token with a still-valid refresh token can be restored —

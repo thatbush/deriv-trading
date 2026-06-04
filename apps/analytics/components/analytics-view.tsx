@@ -8,6 +8,7 @@ import { SymbolSelector } from '@/components/custom/symbol-selector';
 import { DigitDistributionPanel } from './digit-distribution-panel';
 import { Grid2X2, BarChart2 } from 'lucide-react';
 import { EvenOddPanel } from './even-odd-panel';
+import { RiseFallPanel } from './rise-fall-panel';
 import { StreaksPanel } from './streaks-panel';
 import { HistoryStrip } from './history-strip';
 import { useAnalytics } from '@/hooks/use-analytics';
@@ -44,8 +45,9 @@ export function AnalyticsView({
   const [windowSize, setWindowSize] = useState(30);
   const [circleMode, setCircleMode] = useState(false);
   const [overUnderBarrier, setOverUnderBarrier] = useState(5);
+  const [matchDigit, setMatchDigit] = useState(5);
 
-  const analytics = useAnalytics(prices, pipSize, windowSize, overUnderBarrier);
+  const analytics = useAnalytics(prices, pipSize, windowSize, overUnderBarrier, matchDigit);
 
   const livePriceStr = currentTick?.quote?.toFixed(pipSize) ?? '—';
   const liveDigit = currentTick ? parseInt(currentTick.quote.toFixed(pipSize).slice(-1), 10) : null;
@@ -141,15 +143,27 @@ export function AnalyticsView({
 
               <Card>
                 <CardHeader className="pb-2 pt-4 px-4">
-                  <CardTitle className="text-sm font-semibold">Even or Odd?</CardTitle>
+                  <CardTitle className="text-sm font-semibold">Digit contract insights</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
                   <EvenOddPanel
                     evenOdd={analytics.evenOdd}
                     overUnder={analytics.overUnder}
+                    matchDiffer={analytics.matchDiffer}
                     barrier={overUnderBarrier}
                     onBarrierChange={setOverUnderBarrier}
+                    matchDigit={matchDigit}
+                    onMatchDigitChange={setMatchDigit}
                   />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2 pt-4 px-4">
+                  <CardTitle className="text-sm font-semibold">Rise &amp; Fall / Accumulators</CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <RiseFallPanel data={analytics.riseFall} streaks={analytics.streaks} />
                 </CardContent>
               </Card>
 

@@ -225,7 +225,7 @@ export function TradeControls({
         </Button>
       )}
 
-      <InsightPanel prices={prices} pipSize={pipSize} />
+      <InsightPanel prices={prices} pipSize={pipSize} tradeType={tradeType} selectedDigit={selectedDigit} />
     </div>
   );
 }

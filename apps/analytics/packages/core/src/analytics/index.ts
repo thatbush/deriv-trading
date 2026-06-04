@@ -40,6 +40,26 @@ export interface OverUnderStats {
   totalTicks: number;
 }
 
+export interface MatchDifferStats {
+  matchCount: number;
+  differCount: number;
+  matchPercent: number;
+  differPercent: number;
+  digit: number;
+  totalTicks: number;
+}
+
+export interface RiseFallStats {
+  riseCount: number;
+  fallCount: number;
+  flatCount: number;
+  risePercent: number;
+  fallPercent: number;
+  /** Average price change per tick (absolute). */
+  avgMove: number;
+  totalTicks: number;
+}
+
 export interface StreakStats {
   /** Currently running streak. */
   current: {
@@ -123,6 +143,52 @@ export function computeOverUnder(prices: number[], pipSize: number, barrier: num
     underPercent: total > 0 ? (underCount / total) * 100 : 0,
     barrier,
     totalTicks: total,
+  };
+}
+
+/** Compute match/differ stats for a chosen digit over a price window. */
+export function computeMatchDiffer(prices: number[], pipSize: number, digit: number): MatchDifferStats {
+  let matchCount = 0;
+  for (const p of prices) {
+    if (lastDigit(p, pipSize) === digit) matchCount++;
+  }
+  const total = prices.length;
+  const differCount = total - matchCount;
+  return {
+    matchCount,
+    differCount,
+    matchPercent: total > 0 ? (matchCount / total) * 100 : 0,
+    differPercent: total > 0 ? (differCount / total) * 100 : 0,
+    digit,
+    totalTicks: total,
+  };
+}
+
+/** Compute rise/fall stats over a price window (for accumulators & rise-fall context). */
+export function computeRiseFall(prices: number[]): RiseFallStats {
+  if (prices.length < 2) {
+    return { riseCount: 0, fallCount: 0, flatCount: 0, risePercent: 0, fallPercent: 0, avgMove: 0, totalTicks: prices.length };
+  }
+  let riseCount = 0;
+  let fallCount = 0;
+  let flatCount = 0;
+  let totalMove = 0;
+  for (let i = 1; i < prices.length; i++) {
+    const diff = prices[i] - prices[i - 1];
+    if (diff > 0) riseCount++;
+    else if (diff < 0) fallCount++;
+    else flatCount++;
+    totalMove += Math.abs(diff);
+  }
+  const comparisons = prices.length - 1;
+  return {
+    riseCount,
+    fallCount,
+    flatCount,
+    risePercent: (riseCount / comparisons) * 100,
+    fallPercent: (fallCount / comparisons) * 100,
+    avgMove: totalMove / comparisons,
+    totalTicks: prices.length,
   };
 }
 
