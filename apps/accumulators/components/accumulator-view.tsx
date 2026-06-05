@@ -175,13 +175,15 @@ export function AccumulatorView({
   }
 
   return (
-    <main className="flex flex-col bg-background max-lg:h-dvh max-lg:overflow-hidden lg:overflow-visible">
+    <main className="flex flex-col bg-background h-dvh overflow-hidden lg:h-auto lg:overflow-visible lg:min-h-screen">
 
-      <div className="flex w-full max-w-7xl mx-auto flex-col max-lg:px-0 max-lg:py-0 px-3 py-2 sm:px-4 sm:py-4 gap-2 sm:gap-3 max-lg:flex-1 max-lg:min-h-0 max-lg:overflow-hidden lg:flex-none lg:overflow-visible">
-        <div className="max-lg:flex max-lg:flex-col max-lg:flex-1 max-lg:min-h-0 lg:grid lg:grid-cols-[1fr_400px] lg:gap-4">
-          {/* Column 1: Chart */}
-          <div className="max-lg:shrink-0 flex flex-col max-lg:px-3 max-lg:pb-2 pt-2 lg:py-0">
-            <div className="max-lg:h-[50dvh] lg:h-[min(33.6rem,66vh)] lg:min-h-[384px]">
+      {/* Mobile: two-row flex column filling dvh. Desktop: normal page flow. */}
+      <div className="flex flex-col flex-1 min-h-0 lg:block lg:flex-none lg:max-w-7xl lg:mx-auto lg:px-3 lg:py-2 lg:gap-2">
+        <div className="flex flex-col flex-1 min-h-0 lg:grid lg:grid-cols-[1fr_400px] lg:gap-4">
+
+          {/* Chart — fixed height on mobile, natural on desktop */}
+          <div className="shrink-0 flex flex-col px-3 pt-2 pb-2 lg:px-0 lg:py-0">
+            <div className="h-[45dvh] lg:h-[min(33.6rem,66vh)] lg:min-h-[384px]">
               {chartData ? (
                 <AccumulatorChart
                   symbolKey={`accumulator-chart-${chartKey}`}
@@ -204,10 +206,10 @@ export function AccumulatorView({
             </div>
           </div>
 
-          {/* Column 2: Trade controls in a Card */}
-          <div className="max-lg:flex-1 max-lg:min-h-0 max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:px-3 max-lg:border-t max-lg:border-border max-lg:pt-3 max-lg:pb-20 lg:pt-0 flex flex-col gap-3">
+          {/* Controls — scrollable, fills remaining space on mobile */}
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 border-t border-border pt-3 pb-24 lg:border-t-0 lg:pt-0 lg:pb-0 lg:overflow-visible lg:flex-none flex flex-col gap-3">
             {isLoading ? (
-              <Skeleton className="lg:h-[min(33.6rem,66vh)] lg:min-h-[384px] max-lg:h-48 w-full rounded-xl" />
+              <Skeleton className="lg:h-[min(33.6rem,66vh)] lg:min-h-[384px] h-48 w-full rounded-xl" />
             ) : (
               <Card className="lg:h-[min(33.6rem,66vh)] lg:min-h-[384px] lg:overflow-y-auto">
                 <CardContent className="pt-4">
@@ -239,8 +241,8 @@ export function AccumulatorView({
         </div>
       </div>
 
-      {/* Fixed footer */}
-      <div className="fixed bottom-0 left-0 right-0 py-2 text-center bg-background/80 backdrop-blur-sm">
+      {/* Footer — sits in the scroll gutter (pb-24) on mobile, not fixed-overlaid */}
+      <div className="hidden lg:block py-2 text-center">
         <Footer />
       </div>
     </main>
