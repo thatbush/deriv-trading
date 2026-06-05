@@ -77,6 +77,24 @@ export function Shell({ children, isDev }: ShellProps) {
     localStorage.setItem('bm-theme', theme);
   }, [theme]);
 
+  // Hide Tawk.to widget on sub-app routes — its iframe intercepts touch events
+  // over the sub-app iframe, causing intermittent scroll/click failures on mobile.
+  useEffect(() => {
+    const tawk = (window as unknown as Record<string, unknown>).Tawk_API as
+      | { hideWidget?: () => void; showWidget?: () => void; onLoad?: () => void }
+      | undefined;
+    const hide = () => tawk?.hideWidget?.();
+    const show = () => tawk?.showWidget?.();
+
+    if (isSubApp) {
+      // Tawk may not be loaded yet — set onLoad so it hides immediately on load too
+      if (tawk) { hide(); tawk.onLoad = hide; }
+      else { (window as unknown as Record<string, unknown>).Tawk_API = { onLoad: hide }; }
+    } else {
+      if (tawk) { show(); tawk.onLoad = undefined; }
+    }
+  }, [isSubApp]);
+
   // Push theme + branding + auth into the iframe. When `freshOtp` is true, mint a
   // brand-new single-use OTP for this iframe instead of reusing the stored wsUrl.
   const pushToIframe = useCallback(async (iframe: HTMLIFrameElement | null, freshOtp = false) => {
