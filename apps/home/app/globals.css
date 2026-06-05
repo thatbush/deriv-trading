@@ -20,3 +20,18 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/*
+ * When viewing a sub-app (shell adds `.hide-tawk` to <body>), force the Tawk.to
+ * chat widget out of the way. Its floating iframe otherwise sits over the
+ * sub-app iframe and swallows touch events — breaking scroll/tap on the trade
+ * controls on mobile. Cover every container Tawk injects: the launcher iframe,
+ * the main chat iframe, and its wrapper div.
+ */
+body.hide-tawk iframe[title*="chat" i],
+body.hide-tawk .widget-visible,
+body.hide-tawk #tawkchat-container,
+body.hide-tawk div[id^="tawk"] {
+  display: none !important;
+  pointer-events: none !important;
+}

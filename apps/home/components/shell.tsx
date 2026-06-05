@@ -77,22 +77,25 @@ export function Shell({ children, isDev }: ShellProps) {
     localStorage.setItem('bm-theme', theme);
   }, [theme]);
 
-  // Hide Tawk.to widget on sub-app routes — its iframe intercepts touch events
-  // over the sub-app iframe, causing intermittent scroll/click failures on mobile.
+  // Hide Tawk.to widget on sub-app routes — its floating iframe sits over the
+  // sub-app iframe and intercepts touch events, causing intermittent scroll/tap
+  // failures on mobile.
+  //
+  // The Tawk API (hideWidget/onLoad) is racy: the embed script overwrites the
+  // global Tawk_API once it loads, wiping any onLoad we set, and hideWidget()
+  // only exists after load. So we don't rely on it as the source of truth —
+  // instead we toggle a class on <body> that a CSS rule (globals.css) uses to
+  // force the Tawk container to `display:none; pointer-events:none`. That works
+  // the instant the route changes, regardless of whether Tawk has loaded yet.
+  // We *also* call the API when present so its own state stays consistent.
   useEffect(() => {
-    const tawk = (window as unknown as Record<string, unknown>).Tawk_API as
-      | { hideWidget?: () => void; showWidget?: () => void; onLoad?: () => void }
-      | undefined;
-    const hide = () => tawk?.hideWidget?.();
-    const show = () => tawk?.showWidget?.();
+    document.body.classList.toggle('hide-tawk', isSubApp);
 
-    if (isSubApp) {
-      // Tawk may not be loaded yet — set onLoad so it hides immediately on load too
-      if (tawk) { hide(); tawk.onLoad = hide; }
-      else { (window as unknown as Record<string, unknown>).Tawk_API = { onLoad: hide }; }
-    } else {
-      if (tawk) { show(); tawk.onLoad = undefined; }
-    }
+    const tawk = (window as unknown as Record<string, unknown>).Tawk_API as
+      | { hideWidget?: () => void; showWidget?: () => void }
+      | undefined;
+    if (isSubApp) tawk?.hideWidget?.();
+    else tawk?.showWidget?.();
   }, [isSubApp]);
 
   // Push theme + branding + auth into the iframe. When `freshOtp` is true, mint a
