@@ -75,7 +75,7 @@ export default function About() {
     <div className="flex flex-col min-h-full bg-[var(--background)] text-[var(--foreground)] px-4 py-8 max-w-lg mx-auto w-full gap-4 pb-16">
 
       {/* App identity */}
-      <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col gap-3">
+      <div className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 rounded-2xl p-5 flex flex-col gap-3">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-lg font-bold text-[var(--foreground)]">Binary Matix</h1>
@@ -111,7 +111,7 @@ export default function About() {
       </div>
 
       {/* App details */}
-      <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col gap-3">
+      <div className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 rounded-2xl p-5 flex flex-col gap-3">
         <h2 className="text-sm font-bold text-[var(--foreground)]">Application Details</h2>
         {[
           { label: 'Version', value: '1.1.0 (Beta)' },
@@ -127,7 +127,7 @@ export default function About() {
       </div>
 
       {/* Features */}
-      <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col gap-3">
+      <div className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 rounded-2xl p-5 flex flex-col gap-3">
         <h2 className="text-sm font-bold text-[var(--foreground)]">Key Features</h2>
         {SUB_APPS.map((app) => (
           <div key={app.key} className="flex items-start gap-3">
@@ -141,7 +141,7 @@ export default function About() {
       </div>
 
       {/* Support */}
-      <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col gap-3">
+      <div className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 rounded-2xl p-5 flex flex-col gap-3">
         <h2 className="text-sm font-bold text-[var(--foreground)]">Support</h2>
         <a href="mailto:support@binarymatix.com" className="flex items-center gap-2 text-sm text-zinc-500 hover:text-[var(--foreground)] transition-colors">
           <span className="text-xl w-9 h-9 flex items-center justify-center text-center shrink-0 rounded-lg bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400">✉</span> support@binarymatix.com

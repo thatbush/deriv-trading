@@ -26,7 +26,7 @@ export default function Contact() {
         <div className="flex flex-col gap-4">
           <a
             href={`mailto:${email}`}
-            className="group flex items-center gap-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 hover:border-sky-400 dark:hover:border-sky-600 transition-colors"
+            className="group flex items-center gap-4 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 rounded-2xl p-5 hover:border-sky-400 dark:hover:border-sky-600 transition-colors"
           >
             <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950 flex items-center justify-center flex-shrink-0">
               <span className="text-lg text-sky-600 dark:text-sky-400">✉</span>
@@ -41,7 +41,7 @@ export default function Contact() {
             href={whatsapp}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center gap-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 hover:border-emerald-400 dark:hover:border-emerald-600 transition-colors"
+            className="group flex items-center gap-4 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 rounded-2xl p-5 hover:border-emerald-400 dark:hover:border-emerald-600 transition-colors"
           >
             <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center flex-shrink-0">
               <span className="text-lg text-emerald-600 dark:text-emerald-400">✆</span>
@@ -55,7 +55,7 @@ export default function Contact() {
       </section>
 
       <section className="px-6 pb-16 max-w-2xl mx-auto w-full">
-        <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex gap-4">
+        <div className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 rounded-2xl p-5 flex gap-4">
           <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-950 flex items-center justify-center flex-shrink-0">
             <span className="text-amber-600 dark:text-amber-400 text-base">⚡</span>
           </div>
