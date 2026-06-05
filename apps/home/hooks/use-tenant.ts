@@ -13,7 +13,7 @@ const DEFAULTS: TenantConfig = {
   affiliateLink:    'https://partners.deriv.com/rx?sidi=AEF10871-3EA1-41BD-AA0A-C4505628F09E&utm_campaign=dynamicworks&utm_medium=affiliate&utm_source=CU60461',
   brandName:        'Binary Matix',
   supportEmail:     'support@binarymatix.com',
-  supportWhatsapp:  'https://wa.me/447426734754',
+  supportWhatsapp:  null,
   logoUrl:          null,
   primaryColor:     '#0051ff',
   enabledApps:      ALL_SUB_APPS,
