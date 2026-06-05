@@ -236,13 +236,13 @@ export function Shell({ children, isDev }: ShellProps) {
         </nav>
 
         {/* Content area */}
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 min-w-0 relative">
           {isSubApp && activeApp ? (
             <iframe
               key={activeApp.key}
               ref={iframeRef}
               src={iframeSrc}
-              className="w-full h-full border-0"
+              className="absolute inset-0 w-full h-full border-0"
               title={activeApp.label}
             />
           ) : (
