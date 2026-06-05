@@ -6,7 +6,7 @@ import { Footer } from '@/components/custom/footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 import { useContractMarkers } from '@/hooks/use-contract-markers';
-import { TradeControls } from './trade-controls';
+import { TradeControls, BuyButton } from './trade-controls';
 import { InsightPanel } from './insight-panel';
 import type {
   AuthState,
@@ -166,15 +166,14 @@ export function RiseFallView({
   }
 
   return (
-    <main className="flex flex-col bg-background h-dvh overflow-hidden lg:h-auto lg:overflow-visible lg:min-h-screen">
+    <main className="flex flex-col bg-background h-dvh overflow-hidden lg:h-auto lg:min-h-screen lg:overflow-y-auto">
 
-      {/* Mobile: two-row flex column filling dvh. Desktop: normal page flow. */}
-      <div className="flex flex-col flex-1 min-h-0 lg:block lg:flex-none lg:max-w-7xl lg:mx-auto lg:px-3 lg:py-2 lg:gap-2">
-        <div className="flex flex-col flex-1 min-h-0 lg:grid lg:grid-cols-[1fr_400px] lg:gap-4">
+      <div className="flex flex-col flex-1 min-h-0 w-full lg:max-w-7xl lg:mx-auto lg:px-4 lg:py-6 lg:flex-none">
+        <div className="flex flex-col flex-1 min-h-0 lg:grid lg:grid-cols-[1fr_400px] lg:gap-6 lg:items-start">
 
-          {/* Chart — fixed height on mobile, natural on desktop */}
-          <div className="shrink-0 flex flex-col px-3 pt-2 pb-2 lg:px-0 lg:py-0">
-            <div className="h-[45dvh] lg:h-[min(33.6rem,66vh)] lg:min-h-[384px]">
+          {/* Zone 1: Chart */}
+          <div className="shrink-0 px-3 pt-2 pb-1 lg:p-0">
+            <div className="h-[42dvh] lg:h-[min(33.6rem,66vh)] lg:min-h-[384px]">
               {chartData ? (
                 <RiseFallChart
                   symbolKey={`rise-fall-chart-${chartKey}`}
@@ -196,50 +195,72 @@ export function RiseFallView({
             </div>
           </div>
 
-          {/* Controls — scrollable, fills remaining space on mobile */}
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 border-t border-border pt-3 pb-24 lg:border-t-0 lg:pt-0 lg:pb-0 lg:overflow-visible lg:flex-none flex flex-col gap-3">
-            {isLoading ? (
-              <Skeleton className="lg:h-[min(33.6rem,66vh)] lg:min-h-[384px] h-48 w-full rounded-xl" />
-            ) : (
-              <Card className="lg:h-[min(33.6rem,66vh)] lg:min-h-[384px] lg:overflow-y-auto">
-                <CardContent className="pt-4">
-                  <TradeControls
-                    direction={direction}
-                    onDirectionChange={setDirection}
-                    allowEquals={allowEquals}
-                    onAllowEqualsChange={setAllowEquals}
-                    isConnected={isConnected}
-                    stake={stake}
-                    onStakeChange={setStake}
-                    duration={duration}
-                    onDurationChange={setDuration}
-                    durationOptions={durationOptions}
-                    durationUnit={durationUnit}
-                    onDurationUnitChange={setDurationUnit}
-                    endDate={endDate}
-                    onEndDateChange={setEndDate}
-                    endTime={endTime}
-                    onEndTimeChange={setEndTime}
-                    ws={ws}
-                    activeSymbol={activeSymbol}
-                    proposal={proposal}
-                    onBuy={buyContract}
-                    isBuying={isBuying}
-                    buyResult={buyResult}
-                    buyError={buyError}
-                    onClearBuyResult={clearBuyResult}
-                    isAuthenticated={authState === 'authenticated'}
-                  />
-                  <InsightPanel prices={prices} pipSize={pipSize} />
-                </CardContent>
-              </Card>
-            )}
+          {/* Zone 2 + 3 column */}
+          <div className="flex flex-col flex-1 min-h-0 border-t border-border lg:border-t-0">
+
+            {/* Zone 2: Form — scrolls on mobile */}
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 pt-3 pb-2 lg:overflow-visible lg:p-0">
+              {isLoading ? (
+                <Skeleton className="h-40 w-full rounded-xl lg:h-[min(33.6rem,66vh)] lg:min-h-[384px]" />
+              ) : (
+                <Card className="lg:overflow-y-auto lg:h-[min(33.6rem,66vh)] lg:min-h-[384px]">
+                  <CardContent className="pt-4 pb-4">
+                    <TradeControls
+                      direction={direction}
+                      onDirectionChange={setDirection}
+                      allowEquals={allowEquals}
+                      onAllowEqualsChange={setAllowEquals}
+                      isConnected={isConnected}
+                      stake={stake}
+                      onStakeChange={setStake}
+                      duration={duration}
+                      onDurationChange={setDuration}
+                      durationOptions={durationOptions}
+                      durationUnit={durationUnit}
+                      onDurationUnitChange={setDurationUnit}
+                      endDate={endDate}
+                      onEndDateChange={setEndDate}
+                      endTime={endTime}
+                      onEndTimeChange={setEndTime}
+                      ws={ws}
+                      activeSymbol={activeSymbol}
+                      proposal={proposal}
+                      buyResult={buyResult}
+                      buyError={buyError}
+                      onClearBuyResult={clearBuyResult}
+                    />
+                    <InsightPanel prices={prices} pipSize={pipSize} />
+                    {/* Desktop: buy button inside the card */}
+                    <div className="hidden lg:block mt-4">
+                      <BuyButton
+                        proposal={proposal}
+                        isConnected={isConnected}
+                        isBuying={isBuying}
+                        onBuy={buyContract}
+                        isAuthenticated={authState === 'authenticated'}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Zone 3: Buy button — mobile only, pinned at bottom */}
+            <div className="shrink-0 px-3 py-3 border-t border-border bg-background lg:hidden">
+              <BuyButton
+                proposal={proposal}
+                isConnected={isConnected}
+                isBuying={isBuying}
+                onBuy={buyContract}
+                isAuthenticated={authState === 'authenticated'}
+              />
+            </div>
+
           </div>
         </div>
       </div>
 
-      {/* Footer — sits in the scroll gutter (pb-24) on mobile, not fixed-overlaid */}
-      <div className="hidden lg:block py-2 text-center">
+      <div className="hidden lg:block py-2 text-center shrink-0">
         <Footer />
       </div>
     </main>

@@ -33,16 +33,58 @@ interface TradeControlsProps {
   ws: DerivWS | null;
   activeSymbol: ActiveSymbol | null;
   proposal: ProposalInfo | null;
-
-  onBuy: () => void;
-  isBuying: boolean;
   buyResult: BuyResult | null;
   buyError: string | null;
   onClearBuyResult: () => void;
-  /** Whether the user is authenticated — shows the View your positions link when true. */
   isAuthenticated?: boolean;
 }
 
+export interface BuyButtonProps {
+  proposal: ProposalInfo | null;
+  isConnected: boolean;
+  isBuying: boolean;
+  onBuy: () => void;
+  isAuthenticated?: boolean;
+}
+
+/** The Buy button + positions link — rendered outside the scroll area so it's always visible on mobile. */
+export function BuyButton({ proposal, isConnected, isBuying, onBuy, isAuthenticated }: BuyButtonProps) {
+  return (
+    <div className="flex flex-col gap-2">
+      <Button
+        className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
+        size="lg"
+        disabled={!isConnected || !proposal || isBuying}
+        onClick={onBuy}
+      >
+        {isBuying ? (
+          'Purchasing...'
+        ) : (
+          <span className="flex flex-col items-center leading-tight gap-0.5">
+            <span>Buy</span>
+            {proposal && (
+              <span className="text-xs font-normal opacity-90">
+                Payout {proposal.payout.toFixed(2)} USD
+              </span>
+            )}
+          </span>
+        )}
+      </Button>
+      {isAuthenticated && (
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="w-full text-xs text-muted-foreground hover:text-foreground"
+        >
+          <Link href="/reports">View your positions →</Link>
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/** Form fields only — no buy button. Render BuyButton separately outside the scroll container. */
 export function TradeControls({
   direction,
   onDirectionChange,
@@ -63,12 +105,9 @@ export function TradeControls({
   ws,
   activeSymbol,
   proposal,
-  onBuy,
-  isBuying,
   buyResult,
   buyError,
   onClearBuyResult,
-  isAuthenticated,
 }: TradeControlsProps) {
   useEffect(() => {
     if (buyError) {
@@ -101,8 +140,7 @@ export function TradeControls({
   }, [endTimeOption]);
 
   return (
-    <div className="w-full space-y-2 lg:max-w-[400px] lg:space-y-4">
-      {/* Rise / Fall direction segmented control */}
+    <div className="w-full flex flex-col gap-3">
       <ToggleGroup
         type="single"
         value={direction}
@@ -125,7 +163,6 @@ export function TradeControls({
         </ToggleGroupItem>
       </ToggleGroup>
 
-      {/* Allow equals */}
       <div className="flex items-center justify-between">
         <Label htmlFor="allow-equals" className="text-sm cursor-pointer">Allow equals</Label>
         <Switch
@@ -135,7 +172,6 @@ export function TradeControls({
         />
       </div>
 
-      {/* Stake */}
       <div className="space-y-1.5">
         <Label htmlFor="stake" className="text-xs text-muted-foreground">Stake</Label>
         <Input
@@ -152,7 +188,6 @@ export function TradeControls({
         />
       </div>
 
-      {/* Duration */}
       <div className="space-y-1.5">
         <Label className="text-xs text-muted-foreground">Duration</Label>
         <Select
@@ -200,40 +235,6 @@ export function TradeControls({
           />
         )}
       </div>
-
-      {/* Buy button */}
-      <div className="sticky bottom-0 bg-background pt-2 pb-2 -mx-4 px-4 lg:static lg:bg-transparent lg:pt-0 lg:pb-0 lg:mx-0 lg:px-0">
-        <Button
-          className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
-          size="lg"
-          disabled={!isConnected || !proposal || isBuying}
-          onClick={onBuy}
-        >
-          {isBuying ? (
-            'Purchasing...'
-          ) : (
-            <span className="flex flex-col items-center leading-tight gap-0.5">
-              <span>Buy</span>
-              {proposal && (
-                <span className="text-xs font-normal opacity-90">
-                  Payout {proposal.payout.toFixed(2)} USD
-                </span>
-              )}
-            </span>
-          )}
-        </Button>
-      </div>
-
-      {/* View your positions — shown when authenticated */}
-      {isAuthenticated && (
-        <Button
-          asChild
-          variant="ghost"
-          className="w-full text-sm text-muted-foreground hover:text-foreground"
-        >
-          <Link href="/reports">View your positions →</Link>
-        </Button>
-      )}
     </div>
   );
 }

@@ -16,46 +16,100 @@ interface TradeControlsProps {
   growthRate: GrowthRate;
   onGrowthRateChange: (rate: GrowthRate) => void;
   growthRateOptions: { value: number; label: string }[];
-  isConnected: boolean;
   stake: string;
   onStakeChange: (value: string) => void;
   takeProfit: string;
   onTakeProfitChange: (value: string) => void;
   proposal: AccumulatorProposalInfo | null;
-  onBuy: () => void;
-  isBuying: boolean;
   buyResult: BuyResult | null;
   buyError: string | null;
   onClearBuyResult: () => void;
-  /** The currently active accumulator position (only 1 allowed at a time). */
   activePosition?: OpenPosition | null;
-  /** Callback to sell/close the active position. */
-  onClose?: (contractId: number, bidPrice: string) => void;
-  /** Whether the close/sell action is in progress. */
-  isClosing?: boolean;
-  /** Whether the user is authenticated — shows the View your positions link when true. */
   isAuthenticated?: boolean;
 }
 
+export interface BuyButtonProps {
+  proposal: AccumulatorProposalInfo | null;
+  isConnected: boolean;
+  isBuying: boolean;
+  onBuy: () => void;
+  activePosition?: OpenPosition | null;
+  onClose?: (contractId: number, bidPrice: string) => void;
+  isClosing?: boolean;
+  isAuthenticated?: boolean;
+}
+
+/** The Buy/Close button + positions link — rendered outside the scroll area so it's always visible on mobile. */
+export function BuyButton({
+  proposal,
+  isConnected,
+  isBuying,
+  onBuy,
+  activePosition,
+  onClose,
+  isClosing,
+  isAuthenticated,
+}: BuyButtonProps) {
+  return (
+    <div className="flex flex-col gap-2">
+      {!activePosition && (
+        <Button
+          className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
+          size="lg"
+          disabled={!isConnected || !proposal || isBuying}
+          onClick={onBuy}
+        >
+          {isBuying ? 'Purchasing...' : 'Buy'}
+        </Button>
+      )}
+
+      {activePosition && onClose && (
+        <Button
+          variant="outline"
+          className="w-full rounded-full border-black bg-white text-black hover:bg-white hover:text-black dark:border-white dark:bg-transparent dark:text-white dark:hover:bg-white/10"
+          size="lg"
+          disabled={!isConnected || isClosing || !activePosition.is_valid_to_sell}
+          onClick={() => onClose(activePosition.contract_id, activePosition.bid_price)}
+        >
+          {isClosing ? 'Closing...' : (
+            <span className="flex flex-col items-center leading-tight gap-0.5">
+              <span>Close</span>
+              <span className="text-xs font-normal opacity-90">
+                {(parseFloat(activePosition.buy_price) + parseFloat(activePosition.profit)).toFixed(2)} {activePosition.currency}
+              </span>
+            </span>
+          )}
+        </Button>
+      )}
+
+      {isAuthenticated && (
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="w-full text-xs text-muted-foreground hover:text-foreground"
+        >
+          <Link href="/reports">View your positions →</Link>
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/** Form fields only — no buy button. Render BuyButton separately outside the scroll container. */
 export function TradeControls({
   growthRate,
   onGrowthRateChange,
   growthRateOptions,
-  isConnected,
   stake,
   onStakeChange,
   takeProfit,
   onTakeProfitChange,
   proposal,
-  onBuy,
-  isBuying,
   buyResult,
   buyError,
   onClearBuyResult,
   activePosition,
-  onClose,
-  isClosing,
-  isAuthenticated,
 }: TradeControlsProps) {
   useEffect(() => {
     if (buyError) {
@@ -74,8 +128,7 @@ export function TradeControls({
   }, [buyResult, onClearBuyResult]);
 
   return (
-    <div className="w-full space-y-3 lg:max-w-[400px] lg:space-y-4">
-      {/* Growth Rate selector */}
+    <div className="w-full flex flex-col gap-3">
       <div className="space-y-1.5">
         <div className="flex items-center gap-1.5">
           <Label className="text-xs text-muted-foreground">Growth rate</Label>
@@ -96,9 +149,7 @@ export function TradeControls({
         </div>
         <Select
           value={String(growthRate)}
-          onValueChange={(value) => {
-            onGrowthRateChange(parseFloat(value));
-          }}
+          onValueChange={(value) => onGrowthRateChange(parseFloat(value))}
         >
           <SelectTrigger>
             <SelectValue />
@@ -113,7 +164,6 @@ export function TradeControls({
         </Select>
       </div>
 
-      {/* Stake */}
       <div className="space-y-1.5">
         <Label htmlFor="stake" className="text-xs text-muted-foreground">Stake</Label>
         <Input
@@ -130,7 +180,6 @@ export function TradeControls({
         />
       </div>
 
-      {/* Take Profit (optional) */}
       <div className="space-y-1.5">
         <div className="flex items-center gap-1.5">
           <Label htmlFor="take-profit" className="text-xs text-muted-foreground">Take profit</Label>
@@ -164,7 +213,6 @@ export function TradeControls({
         />
       </div>
 
-      {/* Contract info summary — skeleton while waiting for proposal */}
       {!proposal && !activePosition && (
         <div className="space-y-2.5 rounded-md border border-border bg-muted/30 p-3 animate-pulse">
           <div className="flex items-center justify-between">
@@ -182,7 +230,6 @@ export function TradeControls({
         </div>
       )}
 
-      {/* Contract info summary */}
       {proposal && !activePosition && (
         <div className="space-y-1.5 rounded-md border border-border bg-muted/30 p-3 text-xs">
           <div className="flex items-center justify-between">
@@ -204,7 +251,6 @@ export function TradeControls({
         </div>
       )}
 
-      {/* Active position summary — shown when a trade is running */}
       {activePosition && (
         <div className="space-y-1.5 rounded-md border border-border bg-muted/30 p-3 text-xs">
           <div className="flex items-center justify-between">
@@ -224,50 +270,6 @@ export function TradeControls({
             </span>
           </div>
         </div>
-      )}
-
-      {/* Buy / Close button */}
-      <div className="sticky bottom-0 bg-background pt-2 pb-2 -mx-4 px-4 lg:static lg:bg-transparent lg:pt-0 lg:pb-0 lg:mx-0 lg:px-0">
-        {!activePosition && (
-          <Button
-            className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
-            size="lg"
-            disabled={!isConnected || !proposal || isBuying}
-            onClick={onBuy}
-          >
-            {isBuying ? 'Purchasing...' : 'Buy'}
-          </Button>
-        )}
-
-        {activePosition && onClose && (
-          <Button
-            variant="outline"
-            className="w-full rounded-full border-black bg-white text-black hover:bg-white hover:text-black dark:border-white dark:bg-transparent dark:text-white dark:hover:bg-white/10"
-            size="lg"
-            disabled={!isConnected || isClosing || !activePosition.is_valid_to_sell}
-            onClick={() => onClose(activePosition.contract_id, activePosition.bid_price)}
-          >
-            {isClosing ? 'Closing...' : (
-              <span className="flex flex-col items-center leading-tight gap-0.5">
-                <span>Close </span>
-                <span className="text-xs font-normal opacity-90">
-                  {(parseFloat(activePosition.buy_price) + parseFloat(activePosition.profit)).toFixed(2)} {activePosition.currency}
-                </span>
-              </span>
-            )}
-          </Button>
-        )}
-      </div>
-
-      {/* View your positions — shown when authenticated */}
-      {isAuthenticated && (
-        <Button
-          asChild
-          variant="ghost"
-          className="w-full text-sm text-muted-foreground hover:text-foreground"
-        >
-          <Link href="/reports">View your positions →</Link>
-        </Button>
       )}
     </div>
   );

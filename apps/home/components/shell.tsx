@@ -41,12 +41,18 @@ export function Shell({ children, isDev }: ShellProps) {
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window === 'undefined') return 'light';
+  // Always start with 'dark' on server to match the default class applied by the
+  // inline script in layout.tsx. A useEffect corrects to the stored preference
+  // after hydration — avoiding the SSR/client mismatch that causes a 404.
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  useEffect(() => {
     const stored = localStorage.getItem('bm-theme');
-    if (stored === 'light' || stored === 'dark') return stored;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
+    if (stored === 'light' || stored === 'dark') {
+      setTheme(stored);
+    } else if (!window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setTheme('light');
+    }
+  }, []);
 
   // The iframe src is derived from the active app + pathname. We compute it once
   // per active app and hold it, so the sub-app's *internal* navigation (which we
