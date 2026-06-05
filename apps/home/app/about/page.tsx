@@ -83,7 +83,7 @@ export default function About() {
           </div>
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-full px-3 py-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            v1.1.0 Beta
+            v5.1.0 Beta
           </span>
         </div>
         <p className="text-sm text-zinc-500 leading-relaxed">
@@ -114,7 +114,7 @@ export default function About() {
       <div className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 rounded-2xl p-5 flex flex-col gap-3">
         <h2 className="text-sm font-bold text-[var(--foreground)]">Application Details</h2>
         {[
-          { label: 'Version', value: '1.1.0 (Beta)' },
+          { label: 'Version', value: '5.1.0 (Beta)' },
           { label: 'Build', value: 'Production' },
           { label: 'API', value: 'Deriv WebSocket API v3' },
           { label: 'Platform', value: 'Web (Mobile + Desktop)' },

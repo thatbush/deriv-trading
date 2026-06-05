@@ -201,8 +201,8 @@ export function TradeControls({
         )}
       </div>
 
-      {/* Buy button — inline on desktop, fixed above footer on mobile */}
-      <div className="max-lg:fixed max-lg:bottom-[calc(env(safe-area-inset-bottom)+3.2rem)] max-lg:left-3 max-lg:right-3 lg:static">
+      {/* Buy button */}
+      <div className="sticky bottom-0 bg-background pt-2 pb-2 -mx-4 px-4 lg:static lg:bg-transparent lg:pt-0 lg:pb-0 lg:mx-0 lg:px-0">
         <Button
           className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
           size="lg"
