@@ -207,7 +207,7 @@ export function Shell({ children, isDev }: ShellProps) {
 
           <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
             {isDev && <p className="text-[10px] text-zinc-400 mb-2 font-mono">DEV MODE</p>}
-            <p className="text-xs text-zinc-400 leading-relaxed">Version 1.1.0 (Beta)</p>
+            <p className="text-xs text-zinc-400 leading-relaxed">Version 5.1.0 (Beta)</p>
           </div>
         </nav>
 
