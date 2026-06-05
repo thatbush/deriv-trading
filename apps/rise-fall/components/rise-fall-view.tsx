@@ -166,102 +166,158 @@ export function RiseFallView({
   }
 
   return (
-    <main className="flex flex-col bg-background h-dvh overflow-hidden lg:h-auto lg:min-h-screen lg:overflow-y-auto">
-
-      <div className="flex flex-col flex-1 min-h-0 w-full lg:max-w-7xl lg:mx-auto lg:px-4 lg:py-6 lg:flex-none">
-        <div className="flex flex-col flex-1 min-h-0 lg:grid lg:grid-cols-[1fr_400px] lg:gap-6 lg:items-start">
-
-          {/* Zone 1: Chart */}
-          <div className="shrink-0 px-3 pt-2 pb-1 lg:p-0">
-            <div className="h-[42dvh] lg:h-[min(33.6rem,66vh)] lg:min-h-[384px]">
-              {chartData ? (
-                <RiseFallChart
-                  symbolKey={`rise-fall-chart-${chartKey}`}
-                  symbol={activeSymbol?.underlying_symbol}
-                  isConnectionOpened={isConnected}
-                  isMobile={isMobile}
-                  chartData={chartData}
-                  getQuotes={getQuotes}
-                  subscribeQuotes={subscribeQuotes}
-                  unsubscribeQuotes={unsubscribeQuotes}
-                  onSymbolChange={selectSymbol}
-                  isLive={isLive}
-                  endEpoch={endEpoch}
-                  contractsArray={contractMarkers}
-                />
-              ) : (
-                <Skeleton className="h-full w-full rounded-md" />
-              )}
-            </div>
-          </div>
-
-          {/* Zone 2 + 3 column */}
-          <div className="flex flex-col flex-1 min-h-0 border-t border-border lg:border-t-0">
-
-            {/* Zone 2: Form — scrolls on mobile */}
-            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 pt-3 pb-2 lg:overflow-visible lg:p-0">
-              {isLoading ? (
-                <Skeleton className="h-40 w-full rounded-xl lg:h-[min(33.6rem,66vh)] lg:min-h-[384px]" />
-              ) : (
-                <Card className="lg:overflow-y-auto lg:h-[min(33.6rem,66vh)] lg:min-h-[384px]">
-                  <CardContent className="pt-4 pb-4">
-                    <TradeControls
-                      direction={direction}
-                      onDirectionChange={setDirection}
-                      allowEquals={allowEquals}
-                      onAllowEqualsChange={setAllowEquals}
-                      isConnected={isConnected}
-                      stake={stake}
-                      onStakeChange={setStake}
-                      duration={duration}
-                      onDurationChange={setDuration}
-                      durationOptions={durationOptions}
-                      durationUnit={durationUnit}
-                      onDurationUnitChange={setDurationUnit}
-                      endDate={endDate}
-                      onEndDateChange={setEndDate}
-                      endTime={endTime}
-                      onEndTimeChange={setEndTime}
-                      ws={ws}
-                      activeSymbol={activeSymbol}
-                      proposal={proposal}
-                      buyResult={buyResult}
-                      buyError={buyError}
-                      onClearBuyResult={clearBuyResult}
-                    />
-                    <InsightPanel prices={prices} pipSize={pipSize} />
-                    {/* Desktop: buy button inside the card */}
-                    <div className="hidden lg:block mt-4">
-                      <BuyButton
-                        proposal={proposal}
-                        isConnected={isConnected}
-                        isBuying={isBuying}
-                        onBuy={buyContract}
-                        isAuthenticated={authState === 'authenticated'}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            {/* Zone 3: Buy button — mobile only, pinned at bottom */}
-            <div className="shrink-0 px-3 py-3 border-t border-border bg-background lg:hidden">
-              <BuyButton
-                proposal={proposal}
-                isConnected={isConnected}
-                isBuying={isBuying}
-                onBuy={buyContract}
-                isAuthenticated={authState === 'authenticated'}
-              />
-            </div>
-
-          </div>
-        </div>
+    /*
+     * Mobile: CSS grid with explicit row sizes — no flex-1 chain that can collapse.
+     *   Row 1 (chart):  42dvh  — fixed, never changes
+     *   Row 2 (form):   1fr    — takes exactly the remaining space
+     *   Row 3 (button): auto   — sized to content
+     * Desktop: single-column natural flow, two-column grid for chart+controls.
+     */
+    <main
+      className="bg-background lg:min-h-screen lg:overflow-y-auto"
+      style={{ display: 'grid', gridTemplateRows: '42dvh 1fr auto', height: '100dvh' }}
+    >
+      {/* Zone 1: Chart */}
+      <div className="px-3 pt-2 pb-1 overflow-hidden lg:hidden">
+        {chartData ? (
+          <RiseFallChart
+            symbolKey={`rise-fall-chart-${chartKey}`}
+            symbol={activeSymbol?.underlying_symbol}
+            isConnectionOpened={isConnected}
+            isMobile={isMobile}
+            chartData={chartData}
+            getQuotes={getQuotes}
+            subscribeQuotes={subscribeQuotes}
+            unsubscribeQuotes={unsubscribeQuotes}
+            onSymbolChange={selectSymbol}
+            isLive={isLive}
+            endEpoch={endEpoch}
+            contractsArray={contractMarkers}
+          />
+        ) : (
+          <Skeleton className="h-full w-full rounded-md" />
+        )}
       </div>
 
-      <div className="hidden lg:block py-2 text-center shrink-0">
-        <Footer />
+      {/* Zone 2: Scrollable form */}
+      <div className="overflow-y-auto overscroll-contain border-t border-border px-3 pt-3 pb-2 lg:hidden">
+        {isLoading ? (
+          <Skeleton className="h-40 w-full rounded-xl" />
+        ) : (
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <TradeControls
+                direction={direction}
+                onDirectionChange={setDirection}
+                allowEquals={allowEquals}
+                onAllowEqualsChange={setAllowEquals}
+                isConnected={isConnected}
+                stake={stake}
+                onStakeChange={setStake}
+                duration={duration}
+                onDurationChange={setDuration}
+                durationOptions={durationOptions}
+                durationUnit={durationUnit}
+                onDurationUnitChange={setDurationUnit}
+                endDate={endDate}
+                onEndDateChange={setEndDate}
+                endTime={endTime}
+                onEndTimeChange={setEndTime}
+                ws={ws}
+                activeSymbol={activeSymbol}
+                proposal={proposal}
+                buyResult={buyResult}
+                buyError={buyError}
+                onClearBuyResult={clearBuyResult}
+              />
+              <InsightPanel prices={prices} pipSize={pipSize} />
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Zone 3: Buy button — pinned at bottom, mobile only */}
+      <div className="px-3 py-3 border-t border-border bg-background lg:hidden">
+        <BuyButton
+          proposal={proposal}
+          isConnected={isConnected}
+          isBuying={isBuying}
+          onBuy={buyContract}
+          isAuthenticated={authState === 'authenticated'}
+        />
+      </div>
+
+      {/* Desktop layout — spans all 3 rows, overrides the grid */}
+      <div className="hidden lg:block lg:col-start-1 lg:row-start-1 lg:row-end-4 w-full max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-[1fr_400px] gap-6 items-start">
+          <div className="h-[min(33.6rem,66vh)] min-h-[384px]">
+            {chartData ? (
+              <RiseFallChart
+                symbolKey={`rise-fall-chart-${chartKey}`}
+                symbol={activeSymbol?.underlying_symbol}
+                isConnectionOpened={isConnected}
+                isMobile={isMobile}
+                chartData={chartData}
+                getQuotes={getQuotes}
+                subscribeQuotes={subscribeQuotes}
+                unsubscribeQuotes={unsubscribeQuotes}
+                onSymbolChange={selectSymbol}
+                isLive={isLive}
+                endEpoch={endEpoch}
+                contractsArray={contractMarkers}
+              />
+            ) : (
+              <Skeleton className="h-full w-full rounded-md" />
+            )}
+          </div>
+          <div>
+            {isLoading ? (
+              <Skeleton className="h-[min(33.6rem,66vh)] min-h-[384px] w-full rounded-xl" />
+            ) : (
+              <Card className="h-[min(33.6rem,66vh)] min-h-[384px] overflow-y-auto">
+                <CardContent className="pt-4 pb-4">
+                  <TradeControls
+                    direction={direction}
+                    onDirectionChange={setDirection}
+                    allowEquals={allowEquals}
+                    onAllowEqualsChange={setAllowEquals}
+                    isConnected={isConnected}
+                    stake={stake}
+                    onStakeChange={setStake}
+                    duration={duration}
+                    onDurationChange={setDuration}
+                    durationOptions={durationOptions}
+                    durationUnit={durationUnit}
+                    onDurationUnitChange={setDurationUnit}
+                    endDate={endDate}
+                    onEndDateChange={setEndDate}
+                    endTime={endTime}
+                    onEndTimeChange={setEndTime}
+                    ws={ws}
+                    activeSymbol={activeSymbol}
+                    proposal={proposal}
+                    buyResult={buyResult}
+                    buyError={buyError}
+                    onClearBuyResult={clearBuyResult}
+                  />
+                  <InsightPanel prices={prices} pipSize={pipSize} />
+                  <div className="mt-4">
+                    <BuyButton
+                      proposal={proposal}
+                      isConnected={isConnected}
+                      isBuying={isBuying}
+                      onBuy={buyContract}
+                      isAuthenticated={authState === 'authenticated'}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+        <div className="py-2 text-center">
+          <Footer />
+        </div>
       </div>
     </main>
   );
