@@ -109,7 +109,14 @@ export interface SmartChartWrapperProps {
   isLive?: boolean;
   /** Default granularity (0 = ticks, 60 = 1m candles, etc.). Defaults to 0. */
   defaultGranularity?: number;
-  /** Contract markers (entry/exit spots) drawn on the chart for live trades. */
+  /**
+   * Contract markers (entry/exit spots) for live trades. NOTE: currently a no-op.
+   * @deriv/deriv-charts' `contracts_array` → Flutter `updateContracts()` expects a
+   * different shape than our champion-era `ContractMarker[]`, so these don't
+   * render. Restoring needs this version's marker API (`<FastMarker>` or
+   * `contractInfo` + `shouldDrawTicksFromContractInfo`). Left wired so the
+   * useContractMarkers plumbing stays intact for that follow-up.
+   */
   contractsArray?: ContractMarker[];
 }
 

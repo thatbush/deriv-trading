@@ -139,7 +139,16 @@ export interface SmartChartWrapperProps {
   defaultGranularity?: number;
   /** Barriers to display on the chart (accumulator barrier line). */
   barriers?: ChartBarrier[];
-  /** Contract markers (entry/exit spots) drawn on the chart for live trades. */
+  /**
+   * Contract markers (entry/exit spots) for live trades. NOTE: currently a no-op.
+   * @deriv/deriv-charts wires `contracts_array` → `store.updateContracts()` →
+   * Flutter, but that Flutter path expects a different shape than our champion-era
+   * `ContractMarker[]` (it has no `AccumulatorContract`/`TickContract` types), so
+   * these markers don't render. Restoring them is a rebuild using this version's
+   * documented marker API — either the `<FastMarker>` component (README "Marker
+   * API") or `contractInfo` + `shouldDrawTicksFromContractInfo`. Left wired so the
+   * data plumbing (useContractMarkers) stays intact for that follow-up.
+   */
   contractsArray?: ContractMarker[];
 }
 
