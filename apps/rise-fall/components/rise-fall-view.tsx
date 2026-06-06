@@ -167,18 +167,17 @@ export function RiseFallView({
 
   return (
     /*
-     * Mobile: CSS grid with explicit row sizes — no flex-1 chain that can collapse.
-     *   Row 1 (chart):  42dvh  — fixed, never changes
-     *   Row 2 (form):   1fr    — takes exactly the remaining space
-     *   Row 3 (button): auto   — sized to content
-     * Desktop: single-column natural flow, two-column grid for chart+controls.
+     * Mobile: natural block flow — the whole page (iframe) scrolls. We do NOT
+     * try to constrain the iframe to the viewport: iOS Safari ignores iframe
+     * height and grows the frame to fit its content (WebKit bug #149264), which
+     * silently breaks any inner `overflow:auto` scroll container and makes
+     * touch/scroll intermittent. So instead the chart is a fixed-height block,
+     * the controls flow beneath it, and the buy button scrolls with the page.
+     * Desktop: two-column grid for chart + controls (unchanged).
      */
-    <main
-      className="rise-fall-shell bg-background lg:min-h-screen lg:overflow-y-auto"
-      style={{ display: 'grid', gridTemplateRows: '42% 1fr auto' }}
-    >
-      {/* Zone 1: Chart */}
-      <div className="px-3 pt-2 pb-1 overflow-hidden lg:hidden">
+    <main className="bg-background lg:min-h-screen lg:overflow-y-auto">
+      {/* Mobile: chart (fixed height block) */}
+      <div className="h-[340px] px-3 pt-2 pb-1 lg:hidden">
         {chartData ? (
           <RiseFallChart
             symbolKey={`rise-fall-chart-${chartKey}`}
@@ -199,8 +198,8 @@ export function RiseFallView({
         )}
       </div>
 
-      {/* Zone 2: Scrollable form */}
-      <div className="overflow-y-auto overscroll-contain border-t border-border px-3 pt-3 pb-2 lg:hidden">
+      {/* Mobile: controls (natural height, flow with page) */}
+      <div className="border-t border-border px-3 pt-3 pb-2 lg:hidden">
         {isLoading ? (
           <Skeleton className="h-40 w-full rounded-xl" />
         ) : (
@@ -236,8 +235,9 @@ export function RiseFallView({
         )}
       </div>
 
-      {/* Zone 3: Buy button — pinned at bottom, mobile only */}
-      <div className="px-3 py-3 border-t border-border bg-background lg:hidden">
+      {/* Mobile: buy button — sticky to viewport bottom so it stays reachable
+          while the page scrolls, without relying on a fixed-height grid. */}
+      <div className="sticky bottom-0 z-10 px-3 py-3 border-t border-border bg-background lg:hidden">
         <BuyButton
           proposal={proposal}
           isConnected={isConnected}
