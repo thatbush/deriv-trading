@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from 'next-themes';
 import {
   ChartTitle,
@@ -119,7 +119,13 @@ export interface SmartChartWrapperProps {
  * smartcharts-champion contract was the source of the blank-chart / stuck-loader
  * / dead-dropdown bugs, so we match the documented request-based API instead.
  */
-export function SmartChartWrapper({
+/**
+ * Memoised: the live tick feed updates `prices`/`currentTick` in the page on
+ * every tick, re-rendering the whole view tree. The chart depends on none of
+ * that — only `ws`/`symbol`/callbacks (tick-stable). `memo` skips those tick
+ * re-renders so the Flutter chart isn't churned several times a second.
+ */
+function SmartChartWrapperImpl({
   chartId,
   symbolKey,
   symbol,
@@ -326,3 +332,5 @@ export function SmartChartWrapper({
     </div>
   );
 }
+
+export const SmartChartWrapper = memo(SmartChartWrapperImpl);
