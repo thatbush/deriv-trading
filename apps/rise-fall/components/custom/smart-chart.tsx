@@ -160,25 +160,51 @@ export function SmartChartWrapper({
     };
   }, []);
 
-  // One-shot request: SmartCharts calls this for active_symbols, trading_times,
-  // ticks_history (history), etc. We pass through to the WS, but enrich
-  // active_symbols with the display-name/`symbol`/`pip` fields the Deriv options
-  // endpoint omits (otherwise SmartCharts crashes on `localeCompare`). If the
-  // socket isn't ready yet, return an empty result instead of throwing so
-  // SmartCharts retries rather than erroring out.
-  const requestAPI = useCallback(async (request: Record<string, unknown>) => {
-    if (!wsRef.current) return {};
-    const response = (await wsRef.current.send(request)) as Record<string, unknown>;
-    if ('active_symbols' in request) return enrichActiveSymbols(response);
-    if ('trading_times' in request) return enrichTradingTimes(response);
-    return response;
+  // SmartCharts fires its first requests (active_symbols, trading_times) as soon
+  // as it mounts — often BEFORE the WS has finished its handshake. The `ws`
+  // object exists but `readyState !== OPEN`, so `send()` throws "WebSocket is not
+  // connected", SmartCharts catches it and does NOT retry → the chart hangs on
+  // "Retrieving Market Symbols…" forever (the reported bug; toggling devtools
+  // happened to coincide with a late retry). Fix: wait for the socket to actually
+  // be OPEN before sending, so the very first request succeeds.
+  const waitForConnection = useCallback(async (timeoutMs = 15000): Promise<boolean> => {
+    const ws = wsRef.current;
+    if (!ws) return false;
+    if (ws.isConnected) return true;
+    return new Promise<boolean>(resolve => {
+      const start = Date.now();
+      const id = setInterval(() => {
+        if (wsRef.current?.isConnected) {
+          clearInterval(id);
+          resolve(true);
+        } else if (Date.now() - start > timeoutMs || !wsRef.current) {
+          clearInterval(id);
+          resolve(false);
+        }
+      }, 100);
+    });
   }, []);
+
+  // One-shot request: SmartCharts calls this for active_symbols, trading_times,
+  // ticks_history (history), etc. We enrich active_symbols/trading_times with the
+  // fields the Deriv options endpoint omits (else SmartCharts crashes on
+  // `localeCompare` / `delay_amount`).
+  const requestAPI = useCallback(
+    async (request: Record<string, unknown>) => {
+      if (!(await waitForConnection()) || !wsRef.current) return {};
+      const response = (await wsRef.current.send(request)) as Record<string, unknown>;
+      if ('active_symbols' in request) return enrichActiveSymbols(response);
+      if ('trading_times' in request) return enrichTradingTimes(response);
+      return response;
+    },
+    [waitForConnection]
+  );
 
   // Streaming request: SmartCharts passes a request + callback; we forward every
   // streamed message back. Matches the original template's MarketIsClosed guard.
   const requestSubscribe = useCallback(
-    (request: Record<string, unknown>, callback: (response: unknown) => void) => {
-      if (!wsRef.current) return;
+    async (request: Record<string, unknown>, callback: (response: unknown) => void) => {
+      if (!(await waitForConnection()) || !wsRef.current) return;
       wsRef.current
         .subscribe(request, (response: Record<string, unknown>) => {
           const err = response?.error as { code?: string } | undefined;
@@ -190,7 +216,7 @@ export function SmartChartWrapper({
         })
         .catch(() => {});
     },
-    []
+    [waitForConnection]
   );
 
   const settings = useMemo(
@@ -205,51 +231,56 @@ export function SmartChartWrapper({
     [chartTheme]
   );
 
-  // SmartCharts' Flutter renderer measures its drawing surface ONCE at init and
-  // listens for `window` resize events to re-measure. If the container is 0×0 or
-  // its size is still settling when Flutter initialises (which it is on first
-  // load / reload / route-nav, before layout stabilises), the surface inits at
-  // the wrong size and the chart never paints — it just sits on "Retrieving
-  // Market Symbols…". Toggling devtools "fixes" it precisely because that fires a
-  // resize and Flutter re-measures.
+  // SmartCharts' Flutter renderer sizes its drawing surface from its host
+  // element and re-measures via its OWN internal ResizeObserver — NOT the window
+  // `resize` event. On first load / reload / route-nav the host can be measured
+  // before layout settles, so the surface inits wrong and the chart never paints
+  // (stuck on "Retrieving Market Symbols…"). Toggling devtools "fixes" it because
+  // it changes the actual element dimensions, which Flutter's observer picks up —
+  // a synthetic window resize does NOT, since no dimension actually changes.
   //
-  // So we replicate that automatically and reliably:
-  //  1) A ResizeObserver on the container dispatches a `window` resize the moment
-  //     the container's real size lands (esp. the 0→non-zero transition).
-  //  2) A polling fallback keeps nudging until a canvas actually paints — not
-  //     capped at a few hundred ms, since the stall can last until first paint.
+  // So the nudge must cause a REAL dimension change. We momentarily shrink the
+  // container by 1px and restore it on the next frame, forcing a genuine reflow
+  // Flutter's ResizeObserver reacts to. Repeat until a canvas actually paints.
   const containerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     let painted = false;
-    let lastW = 0;
-    let lastH = 0;
 
     const hasCanvas = () =>
       Array.from(el.querySelectorAll('canvas')).some(
         c => (c as HTMLCanvasElement).width > 50 && (c as HTMLCanvasElement).height > 50
       );
-    const nudge = () => window.dispatchEvent(new Event('resize'));
 
-    const ro = new ResizeObserver(entries => {
-      const r = entries[0]?.contentRect;
-      if (!r) return;
-      // Re-measure Flutter whenever the box size changes (0→N is the key case).
-      if (Math.abs(r.width - lastW) > 1 || Math.abs(r.height - lastH) > 1) {
-        lastW = r.width;
-        lastH = r.height;
-        if (r.width > 0 && r.height > 0) nudge();
+    // Real reflow on the FLUTTER HOST element (the thing whose ResizeObserver
+    // Flutter listens to). Briefly add 1px to its height, restore next frame.
+    // Falls back to the wrapper if the host isn't mounted yet.
+    const reflow = () => {
+      const host =
+        (el.querySelector('.smartcharts') as HTMLElement | null) ??
+        (el.querySelector('flutter-view') as HTMLElement | null) ??
+        el;
+      const prev = host.style.height;
+      const h = host.getBoundingClientRect().height;
+      if (h > 0) {
+        host.style.height = `${h + 1}px`;
+        requestAnimationFrame(() => {
+          host.style.height = prev;
+        });
+      } else {
+        // Container itself still 0-height — nudge the wrapper to force layout.
+        const pw = el.style.paddingBottom;
+        el.style.paddingBottom = '1px';
+        requestAnimationFrame(() => {
+          el.style.paddingBottom = pw;
+        });
       }
-    });
-    ro.observe(el);
+    };
 
-    // Poll until first paint (capped at 20s): dispatch resize on a steady cadence
-    // so a stuck Flutter surface gets re-measured even if no ResizeObserver event
-    // fires. Stops the instant a canvas paints.
     let elapsed = 0;
     const poll = setInterval(() => {
-      elapsed += 500;
+      elapsed += 400;
       if (painted || elapsed > 20000) {
         clearInterval(poll);
         return;
@@ -259,13 +290,10 @@ export function SmartChartWrapper({
         clearInterval(poll);
         return;
       }
-      nudge();
-    }, 500);
+      reflow();
+    }, 400);
 
-    return () => {
-      ro.disconnect();
-      clearInterval(poll);
-    };
+    return () => clearInterval(poll);
   }, [symbolKey, symbol]);
 
   return (
