@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Footer } from '@/components/custom/footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useContractMarkers } from '@/hooks/use-contract-markers';
 import { TradeControls, BuyButton } from './trade-controls';
 import { InsightPanel } from './insight-panel';
 import type {
@@ -130,6 +131,7 @@ export function RiseFallView({
   pipSize = 2,
 }: RiseFallViewProps) {
   const isMobile = useIsMobile();
+  const contractMarkers = useContractMarkers(openPositions, activeSymbol?.underlying_symbol, isMobile);
 
   if (error) {
     return (
@@ -174,6 +176,7 @@ export function RiseFallView({
             ws={ws}
             onSymbolChange={selectSymbol}
             isLive={isLive}
+            contractsArray={contractMarkers}
           />
         ) : (
           <Skeleton className="h-full w-full rounded-md" />
@@ -242,6 +245,7 @@ export function RiseFallView({
                 ws={ws}
                 onSymbolChange={selectSymbol}
                 isLive={isLive}
+                contractsArray={contractMarkers}
               />
             ) : (
               <Skeleton className="h-full w-full rounded-md" />

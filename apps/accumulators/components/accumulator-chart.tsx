@@ -2,6 +2,7 @@
 
 import { SmartChartWrapper } from '@/components/custom/smart-chart';
 import type { ChartBarrier } from '@/components/custom/smart-chart';
+import type { ContractMarker } from '@/lib/chart-markers';
 import type { DerivWS } from '@deriv/core';
 
 export interface AccumulatorChartProps {
@@ -13,6 +14,8 @@ export interface AccumulatorChartProps {
   onSymbolChange?: (symbol: string) => void;
   isLive?: boolean;
   barriers?: ChartBarrier[];
+  /** Contract markers (entry/exit spots) for live trades. */
+  contractsArray?: ContractMarker[];
 }
 
 export function AccumulatorChart(props: AccumulatorChartProps) {

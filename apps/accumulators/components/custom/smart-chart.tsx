@@ -9,6 +9,7 @@ import {
 } from '@deriv/deriv-charts';
 import '@deriv/deriv-charts/dist/smartcharts.css';
 import type { DerivWS } from '@deriv/core';
+import type { ContractMarker } from '@/lib/chart-markers';
 import {
   getMarketDisplayName,
   getSubmarketDisplayName,
@@ -138,6 +139,8 @@ export interface SmartChartWrapperProps {
   defaultGranularity?: number;
   /** Barriers to display on the chart (accumulator barrier line). */
   barriers?: ChartBarrier[];
+  /** Contract markers (entry/exit spots) drawn on the chart for live trades. */
+  contractsArray?: ContractMarker[];
 }
 
 /**
@@ -167,6 +170,7 @@ function SmartChartWrapperImpl({
   isLive = true,
   defaultGranularity = 0,
   barriers,
+  contractsArray,
 }: SmartChartWrapperProps) {
   const [chartType] = useState<string>('line');
   const [granularity] = useState(defaultGranularity);
@@ -268,6 +272,18 @@ function SmartChartWrapperImpl({
     [chartTheme]
   );
 
+  // Stabilise every function prop passed to <SmartChart>. Accumulators update the
+  // proposal (→ `barriers`) on every tick to move the barrier line; if these
+  // callbacks were inline they'd get a new identity each tick and SmartCharts
+  // would re-process its widgets/feed, causing the per-tick flicker. Only
+  // `barriers` should change between ticks.
+  const noop = useCallback(() => {}, []);
+  const renderToolbar = useCallback(() => <></>, []);
+  const renderTopWidgets = useCallback(
+    () => <ChartTitle onChange={onSymbolChange} />,
+    [onSymbolChange]
+  );
+
   // SmartCharts' Flutter renderer re-measures its drawing surface via its OWN
   // internal ResizeObserver — NOT the window `resize` event. On first load /
   // reload / route-nav the host can be measured before layout settles, so the
@@ -336,21 +352,22 @@ function SmartChartWrapperImpl({
         barriers={barriers ?? []}
         chartControlsWidgets={null}
         enabledChartFooter={false}
-        chartStatusListener={() => {}}
-        toolbarWidget={() => <></>}
+        chartStatusListener={noop}
+        toolbarWidget={renderToolbar}
         chartType={chartType}
         isMobile={isMobile}
         enabledNavigationWidget={!isMobile}
         granularity={granularity}
         requestAPI={requestAPI}
-        requestForget={() => {}}
-        requestForgetStream={() => {}}
+        requestForget={noop}
+        requestForgetStream={noop}
         requestSubscribe={requestSubscribe}
         settings={settings}
         symbol={symbol}
-        topWidgets={() => <ChartTitle onChange={onSymbolChange} />}
+        topWidgets={renderTopWidgets}
         isConnectionOpened={isConnectionOpened}
         isLive={isLive}
+        contracts_array={contractsArray ?? []}
       />
     </div>
   );

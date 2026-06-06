@@ -33,6 +33,7 @@ declare module '@deriv/deriv-charts' {
     topWidgets?: () => React.ReactNode;
     isConnectionOpened?: boolean;
     isLive?: boolean;
+    contracts_array?: unknown[];
   }
 
   export const SmartChart: React.FC<SmartChartProps>;

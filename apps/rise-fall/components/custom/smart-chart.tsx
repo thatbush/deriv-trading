@@ -9,6 +9,7 @@ import {
 } from '@deriv/deriv-charts';
 import '@deriv/deriv-charts/dist/smartcharts.css';
 import type { DerivWS } from '@deriv/core';
+import type { ContractMarker } from '@/lib/chart-markers';
 import {
   getMarketDisplayName,
   getSubmarketDisplayName,
@@ -108,6 +109,8 @@ export interface SmartChartWrapperProps {
   isLive?: boolean;
   /** Default granularity (0 = ticks, 60 = 1m candles, etc.). Defaults to 0. */
   defaultGranularity?: number;
+  /** Contract markers (entry/exit spots) drawn on the chart for live trades. */
+  contractsArray?: ContractMarker[];
 }
 
 /**
@@ -135,6 +138,7 @@ function SmartChartWrapperImpl({
   onSymbolChange,
   isLive = true,
   defaultGranularity = 0,
+  contractsArray,
 }: SmartChartWrapperProps) {
   const [chartType] = useState<string>('line');
   const [granularity] = useState(defaultGranularity);
@@ -237,6 +241,16 @@ function SmartChartWrapperImpl({
     [chartTheme]
   );
 
+  // Stabilise every function prop passed to <SmartChart> so a parent re-render
+  // never hands SmartCharts new callback identities (which would make it
+  // re-process its widgets/feed).
+  const noop = useCallback(() => {}, []);
+  const renderToolbar = useCallback(() => <></>, []);
+  const renderTopWidgets = useCallback(
+    () => <ChartTitle onChange={onSymbolChange} />,
+    [onSymbolChange]
+  );
+
   // SmartCharts' Flutter renderer sizes its drawing surface from its host
   // element and re-measures via its OWN internal ResizeObserver — NOT the window
   // `resize` event. On first load / reload / route-nav the host can be measured
@@ -313,21 +327,22 @@ function SmartChartWrapperImpl({
         barriers={[]}
         chartControlsWidgets={null}
         enabledChartFooter={false}
-        chartStatusListener={() => {}}
-        toolbarWidget={() => <></>}
+        chartStatusListener={noop}
+        toolbarWidget={renderToolbar}
         chartType={chartType}
         isMobile={isMobile}
         enabledNavigationWidget={!isMobile}
         granularity={granularity}
         requestAPI={requestAPI}
-        requestForget={() => {}}
-        requestForgetStream={() => {}}
+        requestForget={noop}
+        requestForgetStream={noop}
         requestSubscribe={requestSubscribe}
         settings={settings}
         symbol={symbol}
-        topWidgets={() => <ChartTitle onChange={onSymbolChange} />}
+        topWidgets={renderTopWidgets}
         isConnectionOpened={isConnectionOpened}
         isLive={isLive}
+        contracts_array={contractsArray ?? []}
       />
     </div>
   );

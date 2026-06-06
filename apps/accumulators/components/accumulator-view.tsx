@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Footer } from '@/components/custom/footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useContractMarkers } from '@/hooks/use-contract-markers';
 import { TradeControls, BuyButton } from './trade-controls';
 import { InsightPanel } from './insight-panel';
 import type { ChartBarrier } from '@/components/custom/smart-chart';
@@ -123,6 +124,7 @@ export function AccumulatorView({
   pipSize = 2,
 }: AccumulatorViewProps) {
   const isMobile = useIsMobile();
+  const contractMarkers = useContractMarkers(openPositions, activeSymbol?.underlying_symbol, isMobile);
 
   // Accumulators only allow 1 trade at a time — find the active ACCU position for the current symbol
   const activeAccuPosition = openPositions.find(
@@ -184,6 +186,7 @@ export function AccumulatorView({
             onSymbolChange={selectSymbol}
             isLive={isLive}
             barriers={chartBarriers}
+            contractsArray={contractMarkers}
           />
         ) : (
           <Skeleton className="h-full w-full rounded-md" />
@@ -245,6 +248,7 @@ export function AccumulatorView({
                 onSymbolChange={selectSymbol}
                 isLive={isLive}
                 barriers={chartBarriers}
+                contractsArray={contractMarkers}
               />
             ) : (
               <Skeleton className="h-full w-full rounded-md" />
