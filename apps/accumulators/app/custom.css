@@ -1,5 +1,25 @@
 /* Custom CSS for the Accumulators template */
 
+/* ── SmartCharts global touch-action override (mobile scroll/tap bug) ────────
+   @deriv-com/smartcharts-champion ships `body, html { touch-action: none }` in
+   its bundled CSS (authored for Deriv's full-viewport chart platform). In our
+   app it disables ALL touch scrolling AND tapping across the whole page on
+   Android/touch devices, killing the controls. custom.css is imported AFTER
+   smartcharts.css (see app/layout.tsx) so this same-specificity rule wins.
+   The chart canvas keeps its own `.ciq-chart { touch-action: none }` for
+   pan/zoom. See rise-fall for the full diagnosis.                             */
+body,
+html {
+  touch-action: auto !important;
+}
+
+/* SmartCharts (Flutter-based) injects a full-viewport <flt-semantics-placeholder>
+   that sits over the controls and swallows touches — make it pass-through.     */
+flt-semantics-placeholder,
+flutter-view flt-semantics-placeholder {
+  pointer-events: none !important;
+}
+
 /* ── SmartCharts font-size baseline fix ────────────────────────────────────
    SmartCharts' entire CSS was authored against Deriv's platform which sets
    html { font-size: 62.5% } (1rem = 1em = 10px globally).
