@@ -6,7 +6,7 @@ import { TemplateLayout } from '@/components/custom/template-layout';
 import { LogoSrcProvider } from '@/components/custom/logo-src-provider';
 import '@/app/globals.css';
 import './globals.css';
-import '@deriv-com/smartcharts-champion/dist/smartcharts.css';
+import '@deriv/deriv-charts/dist/smartcharts.css';
 import './custom.css';
 
 // SmartCharts declares `font-family: IBM Plex Sans, sans-serif` internally.

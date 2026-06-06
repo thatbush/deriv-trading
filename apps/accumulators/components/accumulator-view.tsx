@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Footer } from '@/components/custom/footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-is-mobile';
-import { useContractMarkers } from '@/hooks/use-contract-markers';
 import { TradeControls, BuyButton } from './trade-controls';
 import { InsightPanel } from './insight-panel';
 import type { ChartBarrier } from '@/components/custom/smart-chart';
@@ -15,11 +14,10 @@ import type {
   DerivAccount,
   ActiveSymbol,
   BuyResult,
+  DerivWS,
 } from '@deriv/core';
 import type { GrowthRate } from '../lib/types';
 import type { AccumulatorProposalInfo } from '../hooks/use-accumulator-proposal';
-import type { UseSmartChartsApiReturn } from '@/hooks/use-smartcharts-api';
-import type { SmartChartChartData } from '@/hooks/use-smartchart-chart-data';
 import type { OpenPosition } from '../lib/types';
 
 const AccumulatorChart = dynamic(
@@ -74,15 +72,10 @@ export interface AccumulatorViewProps {
   sellContract: (contractId: number, bidPrice: string) => Promise<void>;
   sellingId: number | null;
 
-  // Chart data
-  chartData: SmartChartChartData | undefined;
-  getQuotes: UseSmartChartsApiReturn['getQuotes'];
-  subscribeQuotes: UseSmartChartsApiReturn['subscribeQuotes'];
-  unsubscribeQuotes: UseSmartChartsApiReturn['unsubscribeQuotes'];
+  // Chart — SmartCharts drives its own data over this shared socket.
+  ws: DerivWS | null;
   /** Passed to SmartChart. Set to false for a frozen preview. Defaults to true. */
   isLive?: boolean;
-  /** Unix epoch (seconds) to freeze the chart at. */
-  endEpoch?: number;
 
   // Branding (used by preview route; no-op in the real app)
   logoSrc?: string;
@@ -122,19 +115,14 @@ export function AccumulatorView({
   openPositions,
   sellContract,
   sellingId,
-  chartData,
-  getQuotes,
-  subscribeQuotes,
-  unsubscribeQuotes,
+  ws,
   isLive,
-  endEpoch,
   logoSrc,
   appName,
   prices = [],
   pipSize = 2,
 }: AccumulatorViewProps) {
   const isMobile = useIsMobile();
-  const contractMarkers = useContractMarkers(openPositions, activeSymbol?.underlying_symbol, isMobile);
 
   // Accumulators only allow 1 trade at a time — find the active ACCU position for the current symbol
   const activeAccuPosition = openPositions.find(
@@ -179,23 +167,23 @@ export function AccumulatorView({
       className="bg-background lg:min-h-screen lg:overflow-y-auto"
       style={{ display: 'grid', gridTemplateRows: '42dvh 1fr auto', height: '100dvh' }}
     >
-      {/* Zone 1: Chart */}
+      {/* Zone 1: Chart.
+          Only ONE chart instance may exist in the DOM at a time — SmartCharts'
+          Flutter engine is a singleton keyed by `id`. Rendering both the mobile
+          and desktop charts (toggled via CSS) mounts two instances that collide
+          on the single flutter-view; one gets a 0×0 surface and never paints.
+          So gate each slot on `isMobile` and never mount both. */}
       <div className="px-3 pt-2 pb-1 overflow-hidden lg:hidden">
-        {chartData ? (
+        {ws && isMobile ? (
           <AccumulatorChart
             symbolKey={`accumulator-chart-${chartKey}`}
             symbol={activeSymbol?.underlying_symbol}
             isConnectionOpened={isConnected}
             isMobile={isMobile}
-            chartData={chartData}
-            getQuotes={getQuotes}
-            subscribeQuotes={subscribeQuotes}
-            unsubscribeQuotes={unsubscribeQuotes}
+            ws={ws}
             onSymbolChange={selectSymbol}
             isLive={isLive}
-            endEpoch={endEpoch}
             barriers={chartBarriers}
-            contractsArray={contractMarkers}
           />
         ) : (
           <Skeleton className="h-full w-full rounded-md" />
@@ -247,21 +235,16 @@ export function AccumulatorView({
       <div className="hidden lg:block lg:col-start-1 lg:row-start-1 lg:row-end-4 w-full max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-[1fr_400px] gap-6 items-start">
           <div className="h-[min(33.6rem,66vh)] min-h-[384px]">
-            {chartData ? (
+            {ws && !isMobile ? (
               <AccumulatorChart
                 symbolKey={`accumulator-chart-${chartKey}`}
                 symbol={activeSymbol?.underlying_symbol}
                 isConnectionOpened={isConnected}
                 isMobile={isMobile}
-                chartData={chartData}
-                getQuotes={getQuotes}
-                subscribeQuotes={subscribeQuotes}
-                unsubscribeQuotes={unsubscribeQuotes}
+                ws={ws}
                 onSymbolChange={selectSymbol}
                 isLive={isLive}
-                endEpoch={endEpoch}
                 barriers={chartBarriers}
-                contractsArray={contractMarkers}
               />
             ) : (
               <Skeleton className="h-full w-full rounded-md" />
