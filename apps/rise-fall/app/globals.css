@@ -133,4 +133,20 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /*
+   * The app runs inside the shell's iframe. On mobile the layout is a fixed
+   * grid sized to the iframe box (see rise-fall-view). For that to work — and
+   * for the inner form's `overflow-y-auto` to actually scroll instead of the
+   * whole document — html/body must fill the iframe exactly and not scroll
+   * themselves. `100dvh` is unreliable inside a nested iframe (iOS resolves it
+   * against the parent visual viewport), so we anchor to height:100% instead.
+   */
+  @media (max-width: 1023px) {
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+  }
 }

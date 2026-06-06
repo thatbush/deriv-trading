@@ -1,6 +1,27 @@
 /* Custom CSS for this template */
 /* Add your custom styles here */
 
+/* ── Mobile layout height anchor ────────────────────────────────────────────
+   The trade view is a 3-row grid (chart / scrollable form / buy button). It
+   runs inside the shell's iframe, where `dvh` is unreliable on mobile (iOS
+   resolves it against the parent visual viewport, overflowing the iframe so the
+   form's internal scroll never engages and touch/scroll go flaky).
+
+   Anchor the grid to height:100% of the (height-locked) body on mobile. On
+   desktop the grid's content spans all 3 rows and the page scrolls naturally,
+   so let it size to its content (min-height handled by the lg: classes).      */
+@media (max-width: 1023px) {
+  .rise-fall-shell {
+    height: 100%;
+    min-height: 0;
+  }
+}
+@media (min-width: 1024px) {
+  .rise-fall-shell {
+    height: 100dvh;
+  }
+}
+
 /* ── SmartCharts font-size baseline fix ────────────────────────────────────
    SmartCharts' entire CSS was authored against Deriv's platform which sets
    html { font-size: 62.5% } (1rem = 1em = 10px globally).

@@ -174,8 +174,8 @@ export function RiseFallView({
      * Desktop: single-column natural flow, two-column grid for chart+controls.
      */
     <main
-      className="bg-background lg:min-h-screen lg:overflow-y-auto"
-      style={{ display: 'grid', gridTemplateRows: '42dvh 1fr auto', height: '100dvh' }}
+      className="rise-fall-shell bg-background lg:min-h-screen lg:overflow-y-auto"
+      style={{ display: 'grid', gridTemplateRows: '42% 1fr auto' }}
     >
       {/* Zone 1: Chart */}
       <div className="px-3 pt-2 pb-1 overflow-hidden lg:hidden">
