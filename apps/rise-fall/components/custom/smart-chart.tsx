@@ -205,27 +205,67 @@ export function SmartChartWrapper({
     [chartTheme]
   );
 
-  // SmartCharts' Flutter renderer measures its drawing surface once on init. If
-  // the container is 0×0 / unstable at that moment (mobile, iframe, skeleton→chart
-  // swap), the canvas can fail to paint until a relayout. Dispatch a few `resize`
-  // events after mount so Flutter re-measures. Cheap, idempotent, stops once painted.
+  // SmartCharts' Flutter renderer measures its drawing surface ONCE at init and
+  // listens for `window` resize events to re-measure. If the container is 0×0 or
+  // its size is still settling when Flutter initialises (which it is on first
+  // load / reload / route-nav, before layout stabilises), the surface inits at
+  // the wrong size and the chart never paints — it just sits on "Retrieving
+  // Market Symbols…". Toggling devtools "fixes" it precisely because that fires a
+  // resize and Flutter re-measures.
+  //
+  // So we replicate that automatically and reliably:
+  //  1) A ResizeObserver on the container dispatches a `window` resize the moment
+  //     the container's real size lands (esp. the 0→non-zero transition).
+  //  2) A polling fallback keeps nudging until a canvas actually paints — not
+  //     capped at a few hundred ms, since the stall can last until first paint.
   const containerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
-    let done = false;
-    const painted = () =>
-      Array.from(containerRef.current?.querySelectorAll('canvas') ?? []).some(
+    const el = containerRef.current;
+    if (!el) return;
+    let painted = false;
+    let lastW = 0;
+    let lastH = 0;
+
+    const hasCanvas = () =>
+      Array.from(el.querySelectorAll('canvas')).some(
         c => (c as HTMLCanvasElement).width > 50 && (c as HTMLCanvasElement).height > 50
       );
-    const fire = () => {
-      if (done) return;
-      if (painted()) {
-        done = true;
+    const nudge = () => window.dispatchEvent(new Event('resize'));
+
+    const ro = new ResizeObserver(entries => {
+      const r = entries[0]?.contentRect;
+      if (!r) return;
+      // Re-measure Flutter whenever the box size changes (0→N is the key case).
+      if (Math.abs(r.width - lastW) > 1 || Math.abs(r.height - lastH) > 1) {
+        lastW = r.width;
+        lastH = r.height;
+        if (r.width > 0 && r.height > 0) nudge();
+      }
+    });
+    ro.observe(el);
+
+    // Poll until first paint (capped at 20s): dispatch resize on a steady cadence
+    // so a stuck Flutter surface gets re-measured even if no ResizeObserver event
+    // fires. Stops the instant a canvas paints.
+    let elapsed = 0;
+    const poll = setInterval(() => {
+      elapsed += 500;
+      if (painted || elapsed > 20000) {
+        clearInterval(poll);
         return;
       }
-      window.dispatchEvent(new Event('resize'));
+      if (hasCanvas()) {
+        painted = true;
+        clearInterval(poll);
+        return;
+      }
+      nudge();
+    }, 500);
+
+    return () => {
+      ro.disconnect();
+      clearInterval(poll);
     };
-    const timers = [150, 400, 800, 1500, 2500].map(ms => setTimeout(fire, ms));
-    return () => timers.forEach(clearTimeout);
   }, [symbolKey, symbol]);
 
   return (
