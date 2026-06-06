@@ -1,8 +1,6 @@
 'use client';
 
 import { Suspense, useEffect, useRef, useState } from 'react';
-import { useSmartChartsApi } from '@/hooks/use-smartcharts-api';
-import { useSmartChartChartData } from '@/hooks/use-smartchart-chart-data';
 import { useRiseFallTrading } from '../hooks/use-rise-fall-trading';
 import { useDerivWSContext } from '@/components/custom/deriv-ws-provider';
 import { useLogoSrc } from '@/components/custom/logo-src-provider';
@@ -37,8 +35,6 @@ function RiseFallPage() {
 
   const trading = useRiseFallTrading({ ws, isConnected, isExhausted, isAuthenticated: !!auth.wsUrl, onAuthWSFailed: logout });
 
-  const { chartData } = useSmartChartChartData(trading.ws, trading.isConnected, trading.symbols);
-  const { getQuotes, subscribeQuotes, unsubscribeQuotes } = useSmartChartsApi(trading.ws);
   const wsGeneration = useWsGeneration(trading.ws);
 
   return (
@@ -84,10 +80,6 @@ function RiseFallPage() {
       openPositions={trading.openPositions}
       sellContract={trading.sellContract}
       sellingId={trading.sellingId}
-      chartData={chartData}
-      getQuotes={getQuotes}
-      subscribeQuotes={subscribeQuotes}
-      unsubscribeQuotes={unsubscribeQuotes}
     />
   );
 }

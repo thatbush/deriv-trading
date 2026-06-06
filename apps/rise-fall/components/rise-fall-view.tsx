@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Footer } from '@/components/custom/footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-is-mobile';
-import { useContractMarkers } from '@/hooks/use-contract-markers';
 import { TradeControls, BuyButton } from './trade-controls';
 import { InsightPanel } from './insight-panel';
 import type {
@@ -17,8 +16,6 @@ import type {
   DerivWS,
 } from '@deriv/core';
 import type { Direction, DurationSelectUnit, DurationOption } from '../lib/types';
-import type { UseSmartChartsApiReturn } from '@/hooks/use-smartcharts-api';
-import type { SmartChartChartData } from '@/hooks/use-smartchart-chart-data';
 import type { OpenPosition } from '../lib/types';
 
 const RiseFallChart = dynamic(() => import('./rise-fall-chart').then(m => m.RiseFallChart), {
@@ -79,18 +76,8 @@ export interface RiseFallViewProps {
   sellContract: (contractId: number, bidPrice: string) => Promise<void>;
   sellingId: number | null;
 
-  // Chart data (elevated to page so preview can inject frozen mocks)
-  chartData: SmartChartChartData | undefined;
-  getQuotes: UseSmartChartsApiReturn['getQuotes'];
-  subscribeQuotes: UseSmartChartsApiReturn['subscribeQuotes'];
-  unsubscribeQuotes: UseSmartChartsApiReturn['unsubscribeQuotes'];
   /** Passed to SmartChart. Set to false for a frozen preview. Defaults to true. */
   isLive?: boolean;
-  /**
-   * Unix epoch (seconds) to freeze the chart at. When set, SmartCharts renders
-   * a static historical snapshot and never sets up a live subscription.
-   */
-  endEpoch?: number;
 
   // Branding (used by preview route; no-op in the real app)
   logoSrc?: string;
@@ -136,19 +123,13 @@ export function RiseFallView({
   buyError,
   clearBuyResult,
   openPositions,
-  chartData,
-  getQuotes,
-  subscribeQuotes,
-  unsubscribeQuotes,
   isLive,
-  endEpoch,
   logoSrc,
   appName,
   prices = [],
   pipSize = 2,
 }: RiseFallViewProps) {
   const isMobile = useIsMobile();
-  const contractMarkers = useContractMarkers(openPositions, activeSymbol?.underlying_symbol, isMobile);
 
   if (error) {
     return (
@@ -178,20 +159,15 @@ export function RiseFallView({
     <main className="bg-background lg:min-h-screen lg:overflow-y-auto">
       {/* Mobile: chart (fixed height block) */}
       <div className="h-[340px] px-3 pt-2 pb-1 lg:hidden">
-        {chartData ? (
+        {ws ? (
           <RiseFallChart
             symbolKey={`rise-fall-chart-${chartKey}`}
             symbol={activeSymbol?.underlying_symbol}
             isConnectionOpened={isConnected}
             isMobile={isMobile}
-            chartData={chartData}
-            getQuotes={getQuotes}
-            subscribeQuotes={subscribeQuotes}
-            unsubscribeQuotes={unsubscribeQuotes}
+            ws={ws}
             onSymbolChange={selectSymbol}
             isLive={isLive}
-            endEpoch={endEpoch}
-            contractsArray={contractMarkers}
           />
         ) : (
           <Skeleton className="h-full w-full rounded-md" />
@@ -251,20 +227,15 @@ export function RiseFallView({
       <div className="hidden lg:block lg:col-start-1 lg:row-start-1 lg:row-end-4 w-full max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-[1fr_400px] gap-6 items-start">
           <div className="h-[min(33.6rem,66vh)] min-h-[384px]">
-            {chartData ? (
+            {ws ? (
               <RiseFallChart
                 symbolKey={`rise-fall-chart-${chartKey}`}
                 symbol={activeSymbol?.underlying_symbol}
                 isConnectionOpened={isConnected}
                 isMobile={isMobile}
-                chartData={chartData}
-                getQuotes={getQuotes}
-                subscribeQuotes={subscribeQuotes}
-                unsubscribeQuotes={unsubscribeQuotes}
+                ws={ws}
                 onSymbolChange={selectSymbol}
                 isLive={isLive}
-                endEpoch={endEpoch}
-                contractsArray={contractMarkers}
               />
             ) : (
               <Skeleton className="h-full w-full rounded-md" />

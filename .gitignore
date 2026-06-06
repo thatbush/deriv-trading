@@ -19,3 +19,4 @@ node_modules
 /apps/*/public/*.smartcharts.*
 /apps/*/public/assets
 /apps/*/public/chart
+/apps/*/public/js/smartcharts
