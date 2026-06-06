@@ -129,24 +129,7 @@ export function useSmartChartChartData(
           settled = true;
           clearTimeout(timeout);
           const map = buildTradingTimesMap(response as TradingTimesResponse);
-          // SmartCharts only (re)ingests trading times when the *stringified*
-          // value differs from what it last saw, and only acts on it once its
-          // internal store is initialised. Delivering the real map as the very
-          // first value races that init: the change is observed before the store
-          // is ready, then never re-observed, so the chart hangs at "Retrieving
-          // Trading Times..." until something else (e.g. a symbol switch) yields
-          // a new value — exactly the reported symptom.
-          //
-          // Fix: seed an empty map first (lets the chart mount + initialise its
-          // store with a known `"{}"` value), then deliver the real map on the
-          // next tick. The real map stringifies differently from `"{}"`, so the
-          // library's `JSON.stringify(next) !== prev` check reliably fires with
-          // the store ready.
-          setTradingTimes({});
-          setTimeout(() => {
-            if (cancelled) return;
-            setTradingTimes(map);
-          }, 1200);
+          setTradingTimes(map);
         })
         .catch(() => {
           if (cancelled || settled) return;

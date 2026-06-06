@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from 'next-themes';
 import {
   ChartMode,
@@ -98,6 +98,32 @@ export function SmartChartWrapper({
   const [chartType, setChartType] = useState<string | undefined>('line');
   const [granularity, setGranularity] = useState(defaultGranularity);
 
+  // SmartCharts' Flutter renderer measures its drawing surface (the
+  // <flt-glass-pane>) once on init. If the container has zero/unstable size at
+  // that moment — which happens on mobile, in the iframe, and right after the
+  // skeleton→chart swap — the glass pane initialises at 0×0 and never paints a
+  // canvas, leaving the chart blank ("Retrieving Chart Data…" / white box) until
+  // some later relayout (e.g. the user changing volatility) forces a re-measure.
+  // We force that re-measure ourselves: once mounted, dispatch a window `resize`
+  // (which Flutter listens for) on a few short delays so it picks up the real
+  // container size. Cheap, idempotent, and stops after the chart has painted.
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    let done = false;
+    const painted = () =>
+      !!containerRef.current?.querySelector('canvas') &&
+      Array.from(containerRef.current.querySelectorAll('canvas')).some(
+        c => (c as HTMLCanvasElement).width > 50 && (c as HTMLCanvasElement).height > 50
+      );
+    const fire = () => {
+      if (done) return;
+      if (painted()) { done = true; return; }
+      window.dispatchEvent(new Event('resize'));
+    };
+    const timers = [150, 400, 800, 1500, 2500].map(ms => setTimeout(fire, ms));
+    return () => timers.forEach(clearTimeout);
+  }, [symbolKey, symbol]);
+
   const { resolvedTheme } = useTheme();
   // Read from the DOM immediately so the chart never gets the wrong theme on first render.
   // useTheme resolves async; document.documentElement is synchronous and always correct.
@@ -134,7 +160,7 @@ export function SmartChartWrapper({
   );
 
   return (
-    <div className="relative h-full min-h-0 w-full overflow-clip rounded-md border border-border/50 dark:border-white/[0.08] bg-background">
+    <div ref={containerRef} className="relative h-full min-h-0 w-full overflow-clip rounded-md border border-border/50 dark:border-white/[0.08] bg-background">
       <SmartChart
         key={symbolKey}
         chartControlsWidgets={null}
@@ -147,6 +173,13 @@ export function SmartChartWrapper({
         }
         enabledChartFooter={false}
         enabledNavigationWidget={!isMobile}
+        // We supply activeSymbols + tradingTimes via `chartData`, so tell
+        // SmartCharts NOT to fetch them itself. Without this, feedCall defaults to
+        // `{ activeSymbols: true, tradingTimes: true }` and SmartCharts tries to
+        // fetch trading times through a path we don't wire up — leaving the chart
+        // stuck on "Retrieving Trading Times..." (per the library's own README
+        // example, which pairs `chartData` with this exact feedCall).
+        feedCall={{ activeSymbols: false, tradingTimes: false }}
         getQuotes={getQuotes}
         granularity={granularity}
         id={chartId}

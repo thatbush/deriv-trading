@@ -42,7 +42,15 @@ export interface UseSmartChartsApiReturn {
  * the same key attach to the existing entry instead of opening a new socket sub.
  */
 interface SharedSub {
-  callbacks: Set<(quote: Record<string, unknown>) => void>;
+  // Reference count, not a Set: SmartCharts subscribes for the same key twice
+  // with the *same* callback reference, then unsubscribes one. A Set would
+  // collapse the identical callbacks into one entry, so the first unsubscribe
+  // would empty it and `forget` the live feed — leaving the chart stuck at
+  // "Retrieving Chart Data…". Counting refs keeps the feed alive until every
+  // subscribe has been matched by an unsubscribe.
+  refCount: number;
+  emit: (quote: Record<string, unknown>) => void; // fans to the active callback
+  callback: (quote: Record<string, unknown>) => void;
   forget: (() => void) | null; // set once the WS subscribe resolves
   cancelled: boolean;          // true once the last caller has unsubscribed
 }
@@ -59,7 +67,7 @@ export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
     return () => {
       for (const sub of Object.values(subsRef.current)) {
         sub.cancelled = true;
-        sub.callbacks.clear();
+        sub.refCount = 0;
         sub.forget?.();
       }
       subsRef.current = {};
@@ -91,17 +99,21 @@ export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
       if (!wsRef.current) return () => { };
       const key = `${symbol}-${granularity ?? 0}`;
 
-      // If a subscription for this key already exists (pending or live), just
-      // attach this callback to it — never open a second WS subscribe. This is
-      // registered synchronously, so it wins the ~10ms race that previously let
-      // a duplicate subscribe through and produced `AlreadySubscribed`.
+      // If a subscription for this key already exists (pending or live), bump its
+      // ref count instead of opening a second WS subscribe — registered
+      // synchronously so it wins the ~10ms race that previously produced a
+      // duplicate subscribe and `AlreadySubscribed`. Refresh the active callback
+      // to the latest (they're functionally identical for the same key).
       const existing = subsRef.current[key];
       if (existing) {
-        existing.callbacks.add(callback);
+        existing.refCount += 1;
+        existing.callback = callback;
+        let released = false;
         return () => {
-          existing.callbacks.delete(callback);
-          // Last caller gone → tear down the shared subscription.
-          if (existing.callbacks.size === 0) {
+          if (released) return;
+          released = true;
+          existing.refCount -= 1;
+          if (existing.refCount <= 0) {
             existing.cancelled = true;
             existing.forget?.();
             if (subsRef.current[key] === existing) delete subsRef.current[key];
@@ -109,7 +121,13 @@ export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
         };
       }
 
-      const sub: SharedSub = { callbacks: new Set([callback]), forget: null, cancelled: false };
+      const sub: SharedSub = {
+        refCount: 1,
+        callback,
+        emit: (quote) => sub.callback(quote),
+        forget: null,
+        cancelled: false,
+      };
       subsRef.current[key] = sub;
 
       const request: Record<string, unknown> = {
@@ -126,9 +144,7 @@ export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
       };
       if (granularity) request.granularity = granularity;
 
-      const emit = (quote: Record<string, unknown>) => {
-        for (const cb of sub.callbacks) cb(quote);
-      };
+      const emit = sub.emit;
 
       wsRef.current.subscribe(request, (response: Record<string, unknown>) => {
         if (response.tick) {
@@ -169,9 +185,12 @@ export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
           if (subsRef.current[key] === sub) delete subsRef.current[key];
         });
 
+      let released = false;
       return () => {
-        sub.callbacks.delete(callback);
-        if (sub.callbacks.size === 0) {
+        if (released) return;
+        released = true;
+        sub.refCount -= 1;
+        if (sub.refCount <= 0) {
           sub.cancelled = true;
           sub.forget?.();
           if (subsRef.current[key] === sub) delete subsRef.current[key];
@@ -187,7 +206,7 @@ export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
     const sub = subsRef.current[key];
     if (sub) {
       sub.cancelled = true;
-      sub.callbacks.clear();
+      sub.refCount = 0;
       sub.forget?.();
       delete subsRef.current[key];
     }
