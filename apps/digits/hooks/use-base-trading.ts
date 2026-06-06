@@ -91,6 +91,10 @@ export function useBaseTrading({
       const msgType = data.msg_type as string | undefined;
       if (msgType === 'buy' || msgType === 'sell') return;
       const err = data.error as Record<string, string>;
+      // `AlreadySubscribed` is a benign, non-actionable race that SmartCharts
+      // (and our own remounts) can trigger when the same ticks feed is requested
+      // twice. It must never surface to the user as an error toast.
+      if (err.code === 'AlreadySubscribed') return;
       toast.error('Error', {
         description: err.message ?? 'Unexpected error occurred. Please try again.',
       });

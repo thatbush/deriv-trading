@@ -26,9 +26,30 @@ export interface UseSmartChartsApiReturn {
   unsubscribeQuotes: (request?: { symbol?: string; granularity?: number }) => void;
 }
 
+/**
+ * One live WS tick/candle subscription per `symbol-granularity` key, shared
+ * across all callers. SmartCharts calls `subscribeQuotes` for the same symbol
+ * twice in quick succession (StrictMode double-invoke / remount), ~10ms apart —
+ * before the first subscribe's promise resolves. A naive "is it already
+ * subscribed?" check (which can only read state set in `.then()`) loses that
+ * race and fires a second identical `ticks_history…subscribe:1`, which the API
+ * rejects with `AlreadySubscribed`. That rejection both raises a toast and makes
+ * SmartCharts treat the feed as failed, so the chart never renders ("sometimes
+ * it loads" = the two calls happened not to overlap).
+ *
+ * Fix: register the key *synchronously* on the first call and fan the single
+ * underlying subscription's quotes out to every callback. Subsequent callers for
+ * the same key attach to the existing entry instead of opening a new socket sub.
+ */
+interface SharedSub {
+  callbacks: Set<(quote: Record<string, unknown>) => void>;
+  forget: (() => void) | null; // set once the WS subscribe resolves
+  cancelled: boolean;          // true once the last caller has unsubscribed
+}
+
 export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
   const wsRef = useRef<DerivWS | null>(ws);
-  const subscriptionRefs = useRef<Record<string, () => void>>({});
+  const subsRef = useRef<Record<string, SharedSub>>({});
 
   useEffect(() => {
     wsRef.current = ws;
@@ -36,10 +57,12 @@ export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
 
   useEffect(() => {
     return () => {
-      for (const unsub of Object.values(subscriptionRefs.current)) {
-        unsub();
+      for (const sub of Object.values(subsRef.current)) {
+        sub.cancelled = true;
+        sub.callbacks.clear();
+        sub.forget?.();
       }
-      subscriptionRefs.current = {};
+      subsRef.current = {};
     };
   }, []);
 
@@ -68,15 +91,26 @@ export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
       if (!wsRef.current) return () => { };
       const key = `${symbol}-${granularity ?? 0}`;
 
-      // Guard against duplicate subscriptions for the same symbol+granularity.
-      // SmartCharts can call subscribeQuotes twice (remount / StrictMode double
-      // invoke); a second identical `ticks_history ... subscribe:1` triggers the
-      // API's `AlreadySubscribed` error, the failed call never sets an unsub fn,
-      // and the live subscription leaks — leaving the chart stuck loading.
-      if (subscriptionRefs.current[key]) {
-        subscriptionRefs.current[key]();
-        delete subscriptionRefs.current[key];
+      // If a subscription for this key already exists (pending or live), just
+      // attach this callback to it — never open a second WS subscribe. This is
+      // registered synchronously, so it wins the ~10ms race that previously let
+      // a duplicate subscribe through and produced `AlreadySubscribed`.
+      const existing = subsRef.current[key];
+      if (existing) {
+        existing.callbacks.add(callback);
+        return () => {
+          existing.callbacks.delete(callback);
+          // Last caller gone → tear down the shared subscription.
+          if (existing.callbacks.size === 0) {
+            existing.cancelled = true;
+            existing.forget?.();
+            if (subsRef.current[key] === existing) delete subsRef.current[key];
+          }
+        };
       }
+
+      const sub: SharedSub = { callbacks: new Set([callback]), forget: null, cancelled: false };
+      subsRef.current[key] = sub;
 
       const request: Record<string, unknown> = {
         ticks_history: symbol,
@@ -92,12 +126,14 @@ export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
       };
       if (granularity) request.granularity = granularity;
 
-      let unsubscribeFn: () => void = () => { };
+      const emit = (quote: Record<string, unknown>) => {
+        for (const cb of sub.callbacks) cb(quote);
+      };
 
       wsRef.current.subscribe(request, (response: Record<string, unknown>) => {
         if (response.tick) {
           const tick = response.tick as { epoch: number; quote: number };
-          callback({
+          emit({
             Date: new Date(tick.epoch * 1000).toISOString(),
             Close: tick.quote,
             tick,
@@ -112,7 +148,7 @@ export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
             low: string;
             close: string;
           };
-          callback({
+          emit({
             Date: new Date(ohlc.open_time * 1000).toISOString(),
             Open: parseFloat(ohlc.open),
             High: parseFloat(ohlc.high),
@@ -124,14 +160,22 @@ export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
         }
       })
         .then(({ unsubscribe }) => {
-          unsubscribeFn = unsubscribe;
-          subscriptionRefs.current[key] = unsubscribe;
+          sub.forget = unsubscribe;
+          // Caller(s) already gone before the subscribe resolved — forget now.
+          if (sub.cancelled) unsubscribe();
         })
-        .catch(() => { });
+        .catch(() => {
+          // Subscribe failed — drop the entry so a later attempt can retry.
+          if (subsRef.current[key] === sub) delete subsRef.current[key];
+        });
 
       return () => {
-        unsubscribeFn();
-        delete subscriptionRefs.current[key];
+        sub.callbacks.delete(callback);
+        if (sub.callbacks.size === 0) {
+          sub.cancelled = true;
+          sub.forget?.();
+          if (subsRef.current[key] === sub) delete subsRef.current[key];
+        }
       };
     },
     []
@@ -140,10 +184,12 @@ export function useSmartChartsApi(ws: DerivWS | null): UseSmartChartsApiReturn {
   const unsubscribeQuotes = useCallback((request?: { symbol?: string; granularity?: number }) => {
     if (!request?.symbol) return;
     const key = `${request.symbol}-${request.granularity ?? 0}`;
-    const unsubscribe = subscriptionRefs.current[key];
-    if (unsubscribe) {
-      unsubscribe();
-      delete subscriptionRefs.current[key];
+    const sub = subsRef.current[key];
+    if (sub) {
+      sub.cancelled = true;
+      sub.callbacks.clear();
+      sub.forget?.();
+      delete subsRef.current[key];
     }
   }, []);
 
