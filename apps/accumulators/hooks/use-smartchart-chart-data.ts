@@ -102,21 +102,49 @@ export function useSmartChartChartData(
 ): { chartData: SmartChartChartData | undefined } {
   const [tradingTimes, setTradingTimes] = useState<TradingTimesMap | undefined>();
 
+  // Fetch `trading_times` whenever we have a live socket. This is the gate for
+  // `chartData` (and therefore whether the chart mounts at all), so it must not
+  // be allowed to hang. In the iframe the socket can be `isConnected` but not
+  // yet authorized when this first fires, and the response can be silently
+  // dropped — leaving `tradingTimes` undefined forever and the chart stuck on a
+  // skeleton ("loads sometimes"). Guard with a timeout + retry so a dropped
+  // call recovers instead of wedging.
   useEffect(() => {
     if (!ws || !isConnected) return;
     let cancelled = false;
-    ws
-      .send({ trading_times: 'today' })
-      .then(response => {
-        if (cancelled) return;
-        setTradingTimes(buildTradingTimesMap(response as TradingTimesResponse));
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setTradingTimes({});
-      });
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const attempt = () => {
+      let settled = false;
+      // If the call neither resolves nor rejects within 8s, retry.
+      const timeout = setTimeout(() => {
+        if (cancelled || settled) return;
+        settled = true;
+        retryTimer = setTimeout(attempt, 0);
+      }, 8000);
+
+      ws.send({ trading_times: 'today' })
+        .then(response => {
+          if (cancelled || settled) return;
+          settled = true;
+          clearTimeout(timeout);
+          const map = buildTradingTimesMap(response as TradingTimesResponse);
+          setTradingTimes(map);
+        })
+        .catch(() => {
+          if (cancelled || settled) return;
+          settled = true;
+          clearTimeout(timeout);
+          // Fall back to an empty map so the chart can still mount; symbols get
+          // synthesized tradingTimes entries below.
+          setTradingTimes({});
+        });
+    };
+
+    attempt();
     return () => {
       cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
     };
   }, [ws, isConnected]);
 
