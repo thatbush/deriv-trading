@@ -157,9 +157,15 @@ export function RiseFallView({
      * Desktop: two-column grid for chart + controls (unchanged).
      */
     <main className="bg-background lg:min-h-screen lg:overflow-y-auto">
-      {/* Mobile: chart (fixed height block) */}
+      {/* Mobile: chart (fixed height block).
+          Only ONE chart instance may exist in the DOM at a time — SmartCharts'
+          Flutter engine is a singleton keyed by `id`. Rendering both the mobile
+          and desktop charts (toggled via CSS) mounts two instances with the same
+          id; they collide on the single flutter-view and one gets a 0×0 surface
+          (desktop showed blank, mobile broke on reload). So gate each slot on
+          `isMobile` and never mount both. */}
       <div className="h-[340px] px-3 pt-2 pb-1 lg:hidden">
-        {ws ? (
+        {ws && isMobile ? (
           <RiseFallChart
             symbolKey={`rise-fall-chart-${chartKey}`}
             symbol={activeSymbol?.underlying_symbol}
@@ -227,7 +233,7 @@ export function RiseFallView({
       <div className="hidden lg:block lg:col-start-1 lg:row-start-1 lg:row-end-4 w-full max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-[1fr_400px] gap-6 items-start">
           <div className="h-[min(33.6rem,66vh)] min-h-[384px]">
-            {ws ? (
+            {ws && !isMobile ? (
               <RiseFallChart
                 symbolKey={`rise-fall-chart-${chartKey}`}
                 symbol={activeSymbol?.underlying_symbol}
