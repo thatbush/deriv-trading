@@ -1,6 +1,34 @@
 /* Custom CSS for this template */
 /* Add your custom styles here */
 
+/* ── SmartCharts global touch-action override (THE mobile scroll/tap bug) ────
+   @deriv-com/smartcharts-champion ships this in its bundled CSS:
+
+       body, html { touch-action: none; margin: 0; }
+
+   It was authored for Deriv's platform where the chart owns the whole viewport.
+   In our app it disables ALL touch scrolling AND tapping across the entire page
+   on Android/touch devices — the controls become dead. Because the chart (and
+   thus its CSS) loads intermittently, the breakage was intermittent too.
+
+   custom.css is imported AFTER smartcharts.css (see app/layout.tsx), so this
+   same-specificity rule wins the cascade. `!important` guards against load
+   order surprises. We scope `touch-action:none` back to ONLY the chart canvas
+   (which legitimately needs to capture pan/zoom) via #rise-fall-chart below.   */
+body,
+html {
+  touch-action: auto !important;
+}
+
+/* SmartCharts is Flutter-based and injects a full-viewport
+   <flt-semantics-placeholder> (accessibility layer) as a position:absolute
+   393×727 overlay on <body>. It sits over our controls and swallows touches.
+   It carries no visible UI, so make it transparent to pointer/touch input.    */
+flt-semantics-placeholder,
+flutter-view flt-semantics-placeholder {
+  pointer-events: none !important;
+}
+
 /* ── SmartCharts font-size baseline fix ────────────────────────────────────
    SmartCharts' entire CSS was authored against Deriv's platform which sets
    html { font-size: 62.5% } (1rem = 1em = 10px globally).

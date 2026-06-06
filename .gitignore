@@ -16,3 +16,6 @@ node_modules
 /apps/analytics/out
 /apps/rise-fall/out
 /apps/accumulators/out
+/apps/*/public/*.smartcharts.*
+/apps/*/public/assets
+/apps/*/public/chart
