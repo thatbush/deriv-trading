@@ -34,6 +34,8 @@ declare module '@deriv/deriv-charts' {
     isConnectionOpened?: boolean;
     isLive?: boolean;
     contracts_array?: unknown[];
+    /** Chart-surface children, e.g. <FastMarker> overlays. */
+    children?: React.ReactNode;
   }
 
   export const SmartChart: React.FC<SmartChartProps>;
@@ -43,4 +45,37 @@ declare module '@deriv/deriv-charts' {
   }
 
   export const ChartTitle: React.FC<ChartTitleProps>;
+
+  // ── Toolbar widgets (floating chart toolbar) ──────────────────────────────
+  export interface ChartModeProps {
+    onChartType?: (chartType: string) => void;
+    onGranularity?: (granularity: number) => void;
+    portalNodeId?: string;
+  }
+  export const ChartMode: React.FC<ChartModeProps>;
+  export const Views: React.FC<ChartModeProps>;
+  // These dialogs portal their content into the DOM node with id `portalNodeId`.
+  export interface PortalWidgetProps {
+    portalNodeId?: string;
+  }
+  export const StudyLegend: React.FC<PortalWidgetProps>;
+  export const DrawTools: React.FC<PortalWidgetProps>;
+  export const Share: React.FC<PortalWidgetProps>;
+  export const ToolbarWidget: React.FC<{
+    position?: 'top' | 'bottom';
+    children?: React.ReactNode;
+  }>;
+
+  // ── Marker API ────────────────────────────────────────────────────────────
+  export interface FastMarkerRefApi {
+    setPosition: (pos: { epoch: number | null; price: number | null }) => void;
+    div: HTMLDivElement;
+  }
+  export interface FastMarkerProps {
+    markerRef: (ref: FastMarkerRefApi | null) => void;
+    className?: string;
+    children?: React.ReactNode;
+  }
+  export const FastMarker: React.FC<FastMarkerProps>;
+  export const Marker: React.FC<FastMarkerProps>;
 }

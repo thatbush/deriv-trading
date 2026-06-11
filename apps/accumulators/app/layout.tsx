@@ -4,6 +4,7 @@ import { buildFaviconUri } from '@/lib/build-favicon-uri';
 import { inter, FONT_CLASS_MAP } from '@/lib/fonts';
 import { TemplateLayout } from '@/components/custom/template-layout';
 import { LogoSrcProvider } from '@/components/custom/logo-src-provider';
+import { ModalRootTheme } from '@/components/custom/modal-root-theme';
 import '@/app/globals.css';
 import './globals.css';
 import '@deriv/deriv-charts/dist/smartcharts.css';
@@ -40,6 +41,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <TemplateLayout>
           <LogoSrcProvider logoSrc={logoSrc}>{children}</LogoSrcProvider>
         </TemplateLayout>
+        {/* SmartCharts portals its toolbar dialogs (drawing tools, indicators,
+            views, chart-mode) into #modal_root. Without this node the dialog
+            content renders nowhere — you get the backdrop overlay but no panel. */}
+        <div id="modal_root" />
+        <ModalRootTheme />
       </body>
     </html>
   );

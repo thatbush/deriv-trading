@@ -122,3 +122,148 @@ flutter-view flt-semantics-placeholder {
     padding: 0;
   }
 }
+
+/* SmartCharts toolbar dialogs portal into #modal_root (outside the chart root).
+   - Re-anchor em units to 10px (the 62.5% baseline scoped to the chart doesn't
+     reach here), or the dialog renders ~60% oversized.
+   - Keep it out of document flow (the dialogs are position:fixed/absolute) so it
+     doesn't add empty space at the bottom of the page. */
+#modal_root {
+  font-size: 62.5%;
+}
+/* The dialog (`position:absolute`) is positioned by SmartCharts via inline
+   top/left computed from the toolbar button. Those coords resolve against the
+   nearest positioned ancestor, so #modal_root must be a positioned, full-viewport
+   layer that doesn't capture clicks except on the dialog itself. */
+#modal_root {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+#modal_root > * {
+  pointer-events: auto;
+}
+
+/* The toolbar dialog's show/hide relies on react-transition-group adding
+   `sc-dialog-enter-done` to `.sc-dialog` (via ReactDOM.findDOMNode, unreliable
+   under React 19). The class never lands, so the dialog stays opacity:0 / z-index:-3
+   even though its open wrapper gets `.stxMenuActive`. Drive visibility off that
+   wrapper state instead, which SmartCharts toggles directly. */
+.cq-modal-dropdown.stxMenuActive .sc-dialog {
+  opacity: 1 !important;
+  z-index: 3 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+/* Desktop: the dialog normally anchors to its toolbar button via the offset
+   parent, but portalling to #modal_root removes that anchor (top/left fall back
+   to auto → it floats top-center and clips off-screen). Pin it just right of the
+   left toolbar, near the top of the chart. (Mobile keeps the library's
+   near-fullwidth sheet: `.smartcharts-mobile .sc-dialog { left:10px; ... }`.) */
+@media (min-width: 1024px) {
+  #modal_root .cq-modal__overlay {
+    position: fixed;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+  }
+  #modal_root .sc-dialog {
+    position: fixed !important;
+    top: 140px !important;
+    left: 140px !important;
+    max-height: calc(100vh - 200px);
+    pointer-events: auto;
+  }
+}
+
+/* ── Contract markers (FastMarker DOM overlay) ──────────────────────────────
+   FastMarker positions each marker's top-left at the (epoch, price) point and
+   does NOT account for the marker's own size, so every marker offsets itself in
+   CSS via transform. See components/custom/contract-markers-layer.tsx.          */
+.bm-marker {
+  position: absolute;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Spot dots — small filled circles centered on the point. */
+.bm-marker--entrySpot,
+.bm-marker--exitSpot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+.bm-marker--entrySpot {
+  background: #2c9aff;
+}
+.bm-marker--exitSpot.bm-marker--profit {
+  background: #4bb4b3;
+}
+.bm-marker--exitSpot.bm-marker--loss {
+  background: #ec3f3f;
+}
+
+/* Hollow start-of-contract spot. */
+.bm-marker--startTimeCollapsed {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  border: 2px solid #2c9aff;
+}
+
+/* Vertical lines (price === null): startTime / exitTimeCollapsed. */
+.bm-marker--startTime,
+.bm-marker--exitTimeCollapsed {
+  width: 0;
+  height: 100%;
+  top: 0;
+  transform: translateX(-50%);
+  border-left: 1px dashed rgba(140, 140, 140, 0.7);
+}
+
+/* Direction pill / running tick counter. */
+.bm-marker--contractMarker {
+  transform: translate(-50%, -130%);
+}
+.bm-marker__counter {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #fff;
+  border-radius: 8px;
+  white-space: nowrap;
+  background: #2c9aff;
+}
+.bm-marker--down .bm-marker__counter {
+  background: #ec3f3f;
+}
+
+/* Profit/loss badge near the exit spot. */
+.bm-marker--profitAndLossLabel {
+  transform: translate(-50%, -50%);
+}
+.bm-marker__pnl {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #fff;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.bm-marker--profit .bm-marker__pnl {
+  background: #4bb4b3;
+}
+.bm-marker--loss .bm-marker__pnl {
+  background: #ec3f3f;
+}

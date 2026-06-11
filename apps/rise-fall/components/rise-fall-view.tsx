@@ -215,21 +215,26 @@ export function RiseFallView({
                 onClearBuyResult={clearBuyResult}
               />
               <InsightPanel prices={prices} pipSize={pipSize} />
+              {/* Buy button now lives in the scrollable form (mobile) so the
+                  footer can be the pinned bottom bar instead. */}
+              <div className="mt-4">
+                <BuyButton
+                  proposal={proposal}
+                  isConnected={isConnected}
+                  isBuying={isBuying}
+                  onBuy={buyContract}
+                  isAuthenticated={authState === 'authenticated'}
+                />
+              </div>
             </CardContent>
           </Card>
         )}
       </div>
 
-      {/* Mobile: buy button — sticky to viewport bottom so it stays reachable
-          while the page scrolls, without relying on a fixed-height grid. */}
-      <div className="sticky bottom-0 z-10 px-3 py-3 border-t border-border bg-background lg:hidden">
-        <BuyButton
-          proposal={proposal}
-          isConnected={isConnected}
-          isBuying={isBuying}
-          onBuy={buyContract}
-          isAuthenticated={authState === 'authenticated'}
-        />
+      {/* Mobile: footer pinned to the viewport bottom (replaces the buy button,
+          which now lives in the scrollable form above). */}
+      <div className="sticky bottom-0 z-10 px-3 py-2 border-t border-border bg-background text-center lg:hidden">
+        <Footer />
       </div>
 
       {/* Desktop layout — spans all 3 rows, overrides the grid */}

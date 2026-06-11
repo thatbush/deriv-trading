@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Shell } from "@/components/shell";
+import { RiskWarningModal } from "@/components/risk-warning-modal";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -112,6 +113,7 @@ export default function RootLayout({
       </head>
       <body className="h-full overflow-hidden">
         <Shell isDev={process.env.NODE_ENV === 'development'}>{children}</Shell>
+        <RiskWarningModal />
         <script
           dangerouslySetInnerHTML={{
             __html: `var Tawk_API=Tawk_API||{},Tawk_LoadStart=new Date();(function(){var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];s1.async=true;s1.src='https://embed.tawk.to/67651740af5bfec1dbdeb697/1ifhe5lmn';s1.charset='UTF-8';s1.setAttribute('crossorigin','*');s0.parentNode.insertBefore(s1,s0);})();`,

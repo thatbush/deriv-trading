@@ -2,11 +2,21 @@
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from 'next-themes';
+// Restores ReactDOM.findDOMNode (removed in React 19) before the chart's toolbar
+// widgets, which still call it, mount. MUST precede the @deriv/deriv-charts import.
+import '@/components/custom/find-dom-node-shim';
 import {
+  ChartMode,
   ChartTitle,
+  DrawTools,
+  Share,
   SmartChart,
+  StudyLegend,
+  ToolbarWidget,
+  Views,
   setSmartChartsPublicPath,
 } from '@deriv/deriv-charts';
+import { ContractMarkersLayer } from '@/components/custom/contract-markers-layer';
 import '@deriv/deriv-charts/dist/smartcharts.css';
 import type { DerivWS } from '@deriv/core';
 import type { ContractMarker } from '@/lib/chart-markers';
@@ -140,14 +150,10 @@ export interface SmartChartWrapperProps {
   /** Barriers to display on the chart (accumulator barrier line). */
   barriers?: ChartBarrier[];
   /**
-   * Contract markers (entry/exit spots) for live trades. NOTE: currently a no-op.
-   * @deriv/deriv-charts wires `contracts_array` → `store.updateContracts()` →
-   * Flutter, but that Flutter path expects a different shape than our champion-era
-   * `ContractMarker[]` (it has no `AccumulatorContract`/`TickContract` types), so
-   * these markers don't render. Restoring them is a rebuild using this version's
-   * documented marker API — either the `<FastMarker>` component (README "Marker
-   * API") or `contractInfo` + `shouldDrawTicksFromContractInfo`. Left wired so the
-   * data plumbing (useContractMarkers) stays intact for that follow-up.
+   * Contract markers (entry/exit spots) for live trades. Rendered as a DOM overlay
+   * via `<ContractMarkersLayer>` (the library's `FastMarker` API). The Flutter
+   * `contracts_array` path expects a different shape than our champion-era
+   * `ContractMarker[]`, so we draw the markers ourselves from the same data.
    */
   contractsArray?: ContractMarker[];
 }
@@ -181,8 +187,8 @@ function SmartChartWrapperImpl({
   barriers,
   contractsArray,
 }: SmartChartWrapperProps) {
-  const [chartType] = useState<string>('line');
-  const [granularity] = useState(defaultGranularity);
+  const [chartType, setChartType] = useState<string>('line');
+  const [granularity, setGranularity] = useState(defaultGranularity);
 
   const { resolvedTheme } = useTheme();
   // Read from the DOM immediately so the chart never gets the wrong theme on first render.
@@ -287,7 +293,21 @@ function SmartChartWrapperImpl({
   // would re-process its widgets/feed, causing the per-tick flicker. Only
   // `barriers` should change between ticks.
   const noop = useCallback(() => {}, []);
-  const renderToolbar = useCallback(() => <></>, []);
+  // Floating chart toolbar (chart mode, indicators, views, drawing tools, share).
+  // setChartType/setGranularity are stable useState setters, so this callback's
+  // identity only changes with `isMobile` — the per-tick memo/flicker fix holds.
+  const renderToolbar = useCallback(
+    () => (
+      <ToolbarWidget>
+        <ChartMode portalNodeId="modal_root" onChartType={setChartType} onGranularity={setGranularity} />
+        {!isMobile && <StudyLegend portalNodeId="modal_root" />}
+        {!isMobile && <Views portalNodeId="modal_root" onChartType={setChartType} onGranularity={setGranularity} />}
+        <DrawTools portalNodeId="modal_root" />
+        {!isMobile && <Share portalNodeId="modal_root" />}
+      </ToolbarWidget>
+    ),
+    [isMobile]
+  );
   const renderTopWidgets = useCallback(
     () => <ChartTitle onChange={onSymbolChange} />,
     [onSymbolChange]
@@ -376,8 +396,9 @@ function SmartChartWrapperImpl({
         topWidgets={renderTopWidgets}
         isConnectionOpened={isConnectionOpened}
         isLive={isLive}
-        contracts_array={contractsArray ?? []}
-      />
+      >
+        <ContractMarkersLayer contractsArray={contractsArray ?? []} />
+      </SmartChart>
     </div>
   );
 }

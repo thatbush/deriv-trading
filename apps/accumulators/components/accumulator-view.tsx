@@ -215,23 +215,28 @@ export function AccumulatorView({
                 activePosition={activeAccuPosition}
               />
               <InsightPanel prices={prices} pipSize={pipSize} />
+              {/* Buy button now lives in the scrollable form (mobile) so the
+                  footer can be the pinned bottom bar instead. */}
+              <div className="mt-4">
+                <BuyButton
+                  proposal={proposal}
+                  isConnected={isConnected}
+                  isBuying={isBuying}
+                  onBuy={buyContract}
+                  activePosition={activeAccuPosition}
+                  onClose={sellContract}
+                  isClosing={sellingId === activeAccuPosition?.contract_id}
+                  isAuthenticated={authState === 'authenticated'}
+                />
+              </div>
             </CardContent>
           </Card>
         )}
       </div>
 
-      {/* Zone 3: Buy button — pinned at bottom, mobile only */}
-      <div className="px-3 py-3 border-t border-border bg-background lg:hidden">
-        <BuyButton
-          proposal={proposal}
-          isConnected={isConnected}
-          isBuying={isBuying}
-          onBuy={buyContract}
-          activePosition={activeAccuPosition}
-          onClose={sellContract}
-          isClosing={sellingId === activeAccuPosition?.contract_id}
-          isAuthenticated={authState === 'authenticated'}
-        />
+      {/* Zone 3: Footer — pinned at bottom, mobile only */}
+      <div className="px-3 py-2 border-t border-border bg-background text-center lg:hidden">
+        <Footer />
       </div>
 
       {/* Desktop layout */}
