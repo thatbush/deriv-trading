@@ -1,0 +1,1720 @@
+<html>
+  <head>
+    <base href="https://app.binarymatix.com/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      AI Market Analysis
+    </title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <script src="https://apis.google.com/js/api.js">
+    </script>
+    <style>
+      body, html {
+        margin: 0;
+        padding: 0;
+        font-family: &#39;Poppins&#39;, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+        height: 100%;
+        width: 100%;
+    }
+    .app-container {
+        background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+        max-width: 414px;
+        margin: 0 auto;
+        min-height: 100vh;
+        position: relative;
+        padding-top: 4.5rem; /* Add padding to account for fixed header */
+    }
+    .header {
+        background: rgba(30, 41, 59, 0.75);
+        backdrop-filter: blur(12px);
+        padding: 0.75rem;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        max-width: 414px;
+        z-index: 10;
+    }
+    .upload-container {
+        margin-top: 0.5rem; /* Reduce top margin since we have padding on container */
+        padding: 1rem;
+        position: relative;
+    }
+    .image-preview {
+        width: 100%;
+        height: 250px;
+        background: #1e293b;
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed #3b82f6;
+    }
+    .prediction-card {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(96, 165, 250, 0.2);
+        border-radius: 16px;
+        padding: 1rem;
+        margin: 1rem 0;
+        backdrop-filter: blur(12px);
+    }
+    .confidence-meter {
+        width: 100%;
+        height: 8px;
+        background: #1e293b;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0.5rem 0;
+    }
+    .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #22c55e, #3b82f6);
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+    .analysis-button {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        padding: 0.75rem;
+        border-radius: 12px;
+        width: 100%;
+        text-align: center;
+        margin: 1rem 0;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .analysis-button.loading {
+        position: relative;
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        pointer-events: none;
+    }
+    .analysis-button.loading i {
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .market-trend {
+        display: flex;
+        justify-content: space-between;
+        margin: 1rem 0;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .trend-indicator {
+        text-align: center;
+        padding: 0.5rem;
+        border-radius: 8px;
+        flex: 1;
+        margin: 0 0.25rem;
+    }
+    .rise {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+    }
+    .fall {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+    }
+    #uploadedImage {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        display: none;
+    }
+    .file-input {
+        display: none;
+    }
+    @keyframes fadeInOut {
+        0%, 100% { opacity: 0; transform: translateY(5px); }
+        20%, 80% { opacity: 1; transform: translateY(0); }
+    }
+    .hint-text {
+        animation: fadeInOut 4s ease-in-out infinite;
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        left: 0;
+        color: #94a3b8;
+        font-size: 0.875rem;
+        padding: 0 20px;
+        bottom: 0;
+    }
+    #uploadPrompt {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        padding: 20px;
+        width: 100%;
+    }
+    #hintContainer {
+        height: 40px;
+        position: relative;
+        margin-top: 10px;
+        width: 100%;
+        overflow: visible;
+    }
+    .trade-actions {
+        display: none;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .trade-button {
+        flex: 1;
+        padding: 0.75rem;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+    }
+    .trade-rise {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid #22c55e;
+    }
+    .trade-fall {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid #ef4444;
+    }
+    .market-info {
+        background: rgba(30, 41, 59, 0.5);
+        border-radius: 8px;
+        padding: 0.5rem;
+        margin: 0.5rem 0;
+    }
+    .market-type, .timeframe {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0;
+    }
+    .account-info {
+        background: rgba(47, 54, 89, 0.6);
+        border-radius: 12px;
+        padding: 0.75rem;
+        margin: 1rem 1rem 1rem 1rem; /* Add horizontal margins */
+        position: relative;
+        border: 1px solid rgba(96, 165, 250, 0.1);
+    }
+    .account-section {
+        flex: 1;
+        padding: 0.25rem;
+    }
+    .account-divider {
+        width: 1px;
+        height: 40px;
+        background: rgba(96, 165, 250, 0.2);
+        margin: 0 0.75rem;
+    }
+    #realAccountNumber, #demoAccountNumber, #realAccountBalance, #demoAccountBalance {
+        transition: opacity 0.3s ease;
+    }
+    #realAccountNumber.loading, #demoAccountNumber.loading, #realAccountBalance.loading, #demoAccountBalance.loading {
+        opacity: 0.7;
+    }
+    #realAccountNumber.error, #demoAccountNumber.error, #realAccountBalance.error, #demoAccountBalance.error {
+        color: #ef4444;
+    }
+
+    /* Add to existing styles */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        margin-right: 45px; /* Add margin to prevent label overlap */
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #22c55e; /* Default green for real account */
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: &#34;&#34;;
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: #EAB308; /* Yellow color for demo account */
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    .label-text {
+        position: absolute;
+        right: -45px; /* Adjust position to prevent overlap */
+        top: 50%;
+        transform: translateY(-50%);
+        color: #e2e8f0;
+        white-space: nowrap;
+    }
+
+    .amount-input input {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(96, 165, 250, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .amount-input input:focus {
+        border-color: rgba(96, 165, 250, 0.5);
+        outline: none;
+    }
+
+    .trade-settings {
+        margin-bottom: 4rem;
+    }
+    
+    /* Add styles for message display */
+    .trade-message {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 1rem;
+        border-radius: 8px;
+        z-index: 1000;
+        max-width: 90%;
+        width: 350px;
+        text-align: center;
+        animation: slideUp 0.3s ease-out forwards;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+    }
+
+    .trade-message.error {
+        background: rgba(239, 68, 68, 0.9);
+        border: 1px solid #ef4444;
+        color: white;
+    }
+
+    .trade-message.success {
+        background: rgba(34, 197, 94, 0.9);
+        border: 1px solid #22c55e;
+        color: white;
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translate(-50%, 100%);
+            opacity: 0;
+        }
+        to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+    }
+
+    .trade-message.fade-out {
+        animation: fadeOut 0.3s ease-out forwards;
+    }
+
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+    /* Position floating buttons within mobile container */
+    #portfolioLink, #chartsLink {
+        position: fixed;
+        bottom: 1.5rem;
+        z-index: 50;
+        padding: 0.75rem;
+        border-radius: 9999px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+        text-decoration: none;
+        color: white;
+    }
+    
+    #portfolioLink {
+        left: 1.5rem;
+        background-color: #9333ea;
+    }
+    
+    #portfolioLink:hover {
+        background-color: #7c3aed;
+    }
+    
+    #chartsLink {
+        right: 1.5rem;
+        background-color: #eab308;
+    }
+    
+    #chartsLink:hover {
+        background-color: #ca8a04;
+    }
+    
+    /* Ensure buttons stay within mobile container bounds */
+    @media (min-width: 414px) {
+        .app-container {
+            position: relative;
+        }
+        
+        #portfolioLink {
+            left: calc(50vw - 207px + 1.5rem);
+        }
+        
+        #chartsLink {
+            right: calc(50vw - 207px + 1.5rem);
+        }
+    }
+
+    /* Add styles for expanded modals */
+    .modal-expanded .modal-container {
+        padding: 0 !important;
+    }
+    
+    .modal-expanded .modal-content {
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        border-radius: 0 !important;
+    }
+    
+    .modal-expanded #portfolioContent,
+    .modal-expanded #chartsContent {
+        height: calc(100vh - 80px) !important;
+        max-height: none !important;
+    }
+    
+    .modal-expanded #portfolioFrame,
+    .modal-expanded #chartsFrame {
+        height: calc(100vh - 80px) !important;
+    }
+
+    /* Trade warning modal styles */
+    .trade-warning-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+    }
+
+    .trade-warning-modal.show {
+        display: flex;
+    }
+
+    .trade-warning-content {
+        background: rgba(30, 41, 59, 0.95);
+        border: 1px solid rgba(96, 165, 250, 0.3);
+        border-radius: 16px;
+        padding: 2rem;
+        max-width: 340px;
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(12px);
+    }
+
+    .trade-warning-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #f59e0b;
+    }
+
+    .trade-warning-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 0.5rem;
+    }
+
+    .trade-warning-text {
+        font-size: 0.875rem;
+        color: #cbd5e1;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .trade-warning-suggestion {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+        color: #60a5fa;
+    }
+
+    .trade-warning-buttons {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .trade-warning-btn {
+        flex: 1;
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+    }
+
+    .trade-warning-btn-cancel {
+        background: rgba(96, 165, 250, 0.2);
+        color: #60a5fa;
+        border: 1px solid rgba(96, 165, 250, 0.3);
+    }
+
+    .trade-warning-btn-cancel:hover {
+        background: rgba(96, 165, 250, 0.3);
+    }
+
+    .trade-warning-btn-proceed {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        border: none;
+    }
+
+    .trade-warning-btn-proceed:hover {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <div class="header">
+        <a href="javascript:history.back()" class="text-blue-400">        <i class="fas fa-arrow-left"></i>
+</a>
+        <h1 class="text-lg font-semibold ml-2 inline-block">
+          AI Market Analysis
+        </h1>
+      </div>
+      <div class="account-info">
+        <div class="flex justify-between items-center">
+          <div class="account-section">
+            <div class="text-sm text-gray-400">
+              Real Account
+            </div>
+            <div id="realAccountNumber" class="font-medium text-sm">
+              Loading...
+            </div>
+            <div id="realAccountBalance" class="font-medium text-green-400 text-sm">
+              Loading...
+            </div>
+          </div>
+          <div class="account-divider">
+          </div>
+          <div class="account-section">
+            <div class="text-sm text-gray-400">
+              Demo Account
+            </div>
+            <div id="demoAccountNumber" class="font-medium text-sm">
+              Loading...
+            </div>
+            <div id="demoAccountBalance" class="font-medium text-yellow-400 text-sm">
+              Loading...
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="upload-container">
+        <div class="image-preview">
+          <img id="uploadedImage" alt="Uploaded market chart" />
+          <div id="uploadPrompt" class="text-center text-gray-400">
+            <i class="fas fa-cloud-upload-alt text-4xl mb-2"></i>
+            <div id="hintContainer" style="height: 40px; position: relative; margin-top: 10px;">
+            </div>
+          </div>
+        </div>
+        <input type="file" class="file-input" id="fileInput" accept="image/*" />
+        <button class="analysis-button" id="analysisButton" disabled="">
+          <i class="fas fa-chart-line mr-2"></i>
+          Analyze Market
+        </button>
+        <div class="prediction-card">
+          <div class="flex justify-between items-center">
+            <h2 class="text-lg font-semibold">
+              Market Prediction
+            </h2>
+            <span class="text-blue-400">            <i class="fas fa-robot"></i>
+</span>
+          </div>
+          <div class="market-info mb-3">
+            <div class="market-type text-sm text-blue-400">
+              <i class="fas fa-chart-line mr-1"></i>
+              <span id="marketType">              Unknown Market
+</span>
+            </div>
+            <div class="timeframe text-sm text-gray-400">
+              <i class="fas fa-clock mr-1"></i>
+              <span id="timeframe">              Unknown Timeframe
+</span>
+            </div>
+          </div>
+          <div class="confidence-meter">
+            <div class="confidence-fill">
+            </div>
+          </div>
+          <div id="analysisText" class="text-sm text-gray-400">
+            Upload screenshot to start analysis
+          </div>
+          <div class="market-trend">
+            <div class="trend-indicator rise">
+              <i class="fas fa-arrow-up mb-1"></i>
+              <div class="text-sm">
+                Rise
+              </div>
+              <div id="risePercentage" class="text-xs">
+                0%
+              </div>
+            </div>
+            <div class="trend-indicator fall">
+              <i class="fas fa-arrow-down mb-1"></i>
+              <div class="text-sm">
+                Fall
+              </div>
+              <div id="fallPercentage" class="text-xs">
+                0%
+              </div>
+            </div>
+          </div>
+          <div class="trade-settings mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-sm text-gray-400">
+                Trading Account
+              </label>
+              <label class="switch">
+                <input type="checkbox" id="accountToggle" />
+                <span class="slider round"></span>
+                <span class="label-text">                Demo
+</span>
+              </label>
+            </div>
+            <div class="amount-input flex items-center gap-2">
+              <label class="text-sm text-gray-400">
+                Amount:
+              </label>
+              <input type="number" id="tradeAmount" class="flex-1 bg-gray-800 border border-blue-500/20 rounded px-3 py-2 text-white" value="10" min="1" />
+              <span class="text-sm text-gray-400" id="tradeCurrency">              USD
+</span>
+            </div>
+          </div>
+          <div class="trade-actions" id="tradeActions">
+            <button class="trade-button trade-rise" id="riseTradeBtn">
+              <i class="fas fa-arrow-up"></i>
+              <span>              Rise (5m)
+</span>
+            </button>
+            <button class="trade-button trade-fall" id="fallTradeBtn">
+              <i class="fas fa-arrow-down"></i>
+              <span>              Fall (5m)
+</span>
+            </button>
+          </div>
+        </div>
+        <div class="text-center text-sm text-gray-400 mt-4">
+          <i class="fas fa-info-circle mr-1"></i>
+          Upload a clear screenshot of market chart for analysis
+        </div>
+      </div>
+      <!-- Trade Warning Modal -->
+      <div class="trade-warning-modal" id="tradeWarningModal">
+        <div class="trade-warning-content">
+          <div class="trade-warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="trade-warning-title">
+            Trade Against Prediction?
+          </div>
+          <div class="trade-warning-text">
+            The AI analysis suggests a different direction. Are you sure you want to proceed?
+          </div>
+          <div class="trade-warning-suggestion" id="warningMessage">
+          </div>
+          <div class="trade-warning-buttons">
+            <button class="trade-warning-btn trade-warning-btn-cancel" id="cancelTradeBtn">
+              Cancel
+            </button>
+            <button class="trade-warning-btn trade-warning-btn-proceed" id="proceedTradeBtn">
+              Proceed
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Add message container after trade buttons -->
+      <div id="tradeMessage" class="trade-message" style="display: none;">
+      </div>
+      <audio id="notificationSound" preload="auto">
+        <source src="/assets/notifications.mp3" type="audio/mp3" />
+      </audio>
+      <!-- Add floating portfolio button -->
+      <a href="#" id="portfolioLink" class="fixed bottom-6 left-6 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 z-50" style="left: 1.5rem; max-width: 414px;">      <i class="fas fa-briefcase text-xl"></i>
+</a>
+      <!-- Add floating charts button -->
+      <a href="#" id="chartsLink" class="fixed bottom-6 right-6 bg-yellow-500 hover:bg-yellow-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 z-50" style="right: 1.5rem; max-width: 414px;">      <i class="fas fa-chart-line text-xl"></i>
+</a>
+      <!-- Portfolio Modal -->
+      <div id="portfolioModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-[100] hidden">
+        <div class="flex items-center justify-center min-h-screen p-4" id="portfolioModalContainer">
+          <div class="bg-slate-800 rounded-2xl max-w-md w-full max-h-[80vh] overflow-hidden shadow-2xl transition-all duration-300" id="portfolioModalContent">
+            <div class="flex justify-between items-center p-4 border-b border-slate-700">
+              <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                <i class="fas fa-briefcase text-purple-400"></i>
+                Portfolio
+              </h2>
+              <div class="flex items-center gap-2">
+                <button id="expandPortfolio" class="text-gray-400 hover:text-white transition-colors">
+                  <i class="fas fa-expand text-lg"></i>
+                </button>
+                <button id="closePortfolio" class="text-gray-400 hover:text-white transition-colors">
+                  <i class="fas fa-times text-xl"></i>
+                </button>
+              </div>
+            </div>
+            <div class="p-4 overflow-y-auto max-h-96" id="portfolioContent">
+              <div class="text-center text-gray-400 py-8">
+                <i class="fas fa-chart-line text-4xl mb-4 opacity-50"></i>
+                <p>
+                  Loading portfolio...
+                </p>
+              </div>
+              <iframe id="portfolioFrame" src="" class="w-full h-96 border-0 rounded-lg hidden">
+              </iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Charts Modal -->
+      <div id="chartsModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-[100] hidden">
+        <div class="flex items-center justify-center min-h-screen p-4" id="chartsModalContainer">
+          <div class="bg-slate-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl transition-all duration-300" id="chartsModalContent">
+            <div class="flex justify-between items-center p-4 border-b border-slate-700">
+              <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                <i class="fas fa-chart-bar text-blue-400"></i>
+                Charts
+              </h2>
+              <div class="flex items-center gap-2">
+                <button id="expandCharts" class="text-gray-400 hover:text-white transition-colors">
+                  <i class="fas fa-expand text-lg"></i>
+                </button>
+                <button id="closeCharts" class="text-gray-400 hover:text-white transition-colors">
+                  <i class="fas fa-times text-xl"></i>
+                </button>
+              </div>
+            </div>
+            <div class="p-4 overflow-y-auto" style="height: calc(90vh - 80px);" id="chartsContent">
+              <div class="text-center text-gray-400 py-8">
+                <i class="fas fa-chart-bar text-4xl mb-4 opacity-50"></i>
+                <p>
+                  Loading charts...
+                </p>
+              </div>
+              <iframe id="chartsFrame" src="" class="w-full h-full border-0 rounded-lg hidden">
+              </iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const APP_ID = &#39;65715&#39;;
+const API_KEY = &#39;AIzaSyAQifPXwn-vJ-k9VOFYVt1vzzUYZ1QTs6E&#39;;
+let detectedTimeframe = &#34;5m&#34;;
+function getUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  const tokens = [];
+  const accounts = [];
+  const currencies = [];
+  const isDemo = [];
+  
+  // Look for up to 10 accounts to be safe
+  for (let i = 1; i &lt;= 10; i++) {
+    const token = params.get(`token${i}`);
+    const acct = params.get(`acct${i}`);
+    const cur = params.get(`cur${i}`);
+    if (token &amp;&amp; acct &amp;&amp; cur) {
+      tokens.push(token);
+      accounts.push(acct);
+      currencies.push(cur);
+      isDemo.push(acct.startsWith(&#39;VRTC&#39;));
+    }
+  }
+  return {
+    tokens,
+    accounts,
+    currencies,
+    isDemo
+  };
+}
+async function getAccountDetails() {
+  const params = getUrlParams();
+  if (!params.tokens.length) {
+    console.error(&#39;No tokens provided&#39;);
+    showError(&#39;realAccountNumber&#39;, &#39;realAccountBalance&#39;);
+    return;
+  }
+
+  try {
+    // For real account - only use first account (acct1)
+    if (params.tokens[0]) {
+      const realWs = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`);
+      await new Promise((resolve, reject) =&gt; {
+        let timeoutId = setTimeout(() =&gt; {
+          realWs.close();
+          reject(new Error(&#39;Connection timeout&#39;));
+        }, 10000);
+
+        realWs.onopen = () =&gt; {
+          realWs.send(JSON.stringify({
+            authorize: params.tokens[0]
+          }));
+        };
+
+        realWs.onmessage = msg =&gt; {
+          const response = JSON.parse(msg.data);
+          if (response.error) {
+            clearTimeout(timeoutId);
+            reject(new Error(response.error.message));
+            realWs.close();
+            return;
+          }
+          if (response.authorize) {
+            clearTimeout(timeoutId);
+            const realNumberElement = document.getElementById(&#39;realAccountNumber&#39;);
+            const realBalanceElement = document.getElementById(&#39;realAccountBalance&#39;);
+            if (realNumberElement) {
+              realNumberElement.textContent = response.authorize.loginid;
+              realNumberElement.classList.remove(&#39;loading&#39;, &#39;error&#39;);
+            }
+            if (realBalanceElement) {
+              realBalanceElement.textContent = `${parseFloat(response.authorize.balance).toFixed(2)} ${response.authorize.currency}`;
+              realBalanceElement.classList.remove(&#39;loading&#39;, &#39;error&#39;);
+            }
+            resolve();
+            realWs.close();
+          }
+        };
+
+        realWs.onerror = error =&gt; {
+          clearTimeout(timeoutId);
+          reject(error);
+          realWs.close();
+        };
+      });
+    }
+
+    // For demo accounts - use accounts that start with VRTC
+    for (let i = 0; i &lt; params.tokens.length; i++) {
+      if (params.accounts[i].startsWith(&#39;VRTC&#39;)) {
+        const demoWs = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`);
+        await new Promise((resolve, reject) =&gt; {
+          let timeoutId = setTimeout(() =&gt; {
+            demoWs.close();
+            reject(new Error(&#39;Connection timeout&#39;));
+          }, 10000);
+
+          demoWs.onopen = () =&gt; {
+            demoWs.send(JSON.stringify({
+              authorize: params.tokens[i]
+            }));
+          };
+
+          demoWs.onmessage = msg =&gt; {
+            const response = JSON.parse(msg.data);
+            if (response.error) {
+              clearTimeout(timeoutId);
+              reject(new Error(response.error.message));
+              demoWs.close();
+              return;
+            }
+            if (response.authorize) {
+              clearTimeout(timeoutId);
+              const demoNumberElement = document.getElementById(&#39;demoAccountNumber&#39;);
+              const demoBalanceElement = document.getElementById(&#39;demoAccountBalance&#39;);
+              if (demoNumberElement) {
+                demoNumberElement.textContent = response.authorize.loginid;
+                demoNumberElement.classList.remove(&#39;loading&#39;, &#39;error&#39;);
+              }
+              if (demoBalanceElement) {
+                demoBalanceElement.textContent = `${parseFloat(response.authorize.balance).toFixed(2)} ${response.authorize.currency}`;
+                demoBalanceElement.classList.remove(&#39;loading&#39;, &#39;error&#39;);
+              }
+              resolve();
+              demoWs.close();
+            }
+          };
+
+          demoWs.onerror = error =&gt; {
+            clearTimeout(timeoutId);
+            reject(error);
+            demoWs.close();
+          };
+        });
+        break; // Only use the first demo account found
+      }
+    }
+
+  } catch (error) {
+    console.error(&#39;Failed to fetch account details:&#39;, error);
+    showError(&#39;realAccountNumber&#39;, &#39;realAccountBalance&#39;);
+    showError(&#39;demoAccountNumber&#39;, &#39;demoAccountBalance&#39;);
+    throw error;
+  }
+}
+async function sleep(ms) {
+  return new Promise(resolve =&gt; setTimeout(resolve, ms));
+}
+async function analyzeImage(base64Image, maxRetries = 3) {
+  for (let attempt = 1; attempt &lt;= maxRetries; attempt++) {
+    try {
+      console.log(`Attempt ${attempt} of ${maxRetries} to analyze image...`);
+      const response = await fetch(&#39;https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent&#39;, {
+        method: &#39;POST&#39;,
+        headers: {
+          &#39;Content-Type&#39;: &#39;application/json&#39;,
+          &#39;x-goog-api-key&#39;: API_KEY
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: &#34;Analyze this market chart and predict if it shows an upward or downward trend. Identify the market type (e.g. Volatility 100, EUR/USD, etc) and timeframe if visible. Provide percentage confidence for both rise and fall scenarios. Give a detailed, humanly-written analysis that explains what you see in the chart, the pattern of candlesticks or price action, the reasons for your prediction, and any caveats. Start with the format: Market: [market type], Timeframe: [timeframe], Rise: X%, Fall: Y%. Then provide a comprehensive analysis paragraph that reads naturally and explains your reasoning.&#34;
+            }, {
+              inline_data: {
+                mime_type: &#34;image/jpeg&#34;,
+                data: base64Image.split(&#39;,&#39;)[1]
+              }
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            topK: 32,
+            topP: 1,
+            maxOutputTokens: 20000
+          }
+        })
+      });
+      if (response.status === 503) {
+        if (attempt === maxRetries) {
+          throw new Error(&#39;AI Model overloaded after maximum retry attempts, Try again later&#39;);
+        }
+        const waitTime = Math.min(1000 * Math.pow(2, attempt), 10000);
+        console.log(`Model overloaded, waiting ${waitTime}ms before retry...`);
+        await sleep(waitTime);
+        continue;
+      }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status} - ${await response.text()}`);
+      }
+      const data = await response.json();
+      console.log(&#39;API Response:&#39;, data);
+      if (!data || !data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        throw new Error(&#39;Invalid response structure&#39;);
+      }
+      return data;
+    } catch (error) {
+      if (error.message.includes(&#39;Model overloaded&#39;) &amp;&amp; attempt &lt; maxRetries) {
+        continue;
+      }
+      console.error(`Analysis attempt ${attempt} failed:`, error);
+      if (attempt === maxRetries) {
+        throw error;
+      }
+    }
+  }
+}
+async function executeTrade(direction) {
+  try {
+    const amount = parseFloat(document.getElementById(&#39;tradeAmount&#39;).value);
+    const isDemo = document.getElementById(&#39;accountToggle&#39;).checked;
+    const params = getUrlParams();
+    
+    let selectedToken, selectedAccount, selectedCurrency;
+    
+    if (isDemo) {
+      const demoIdx = params.accounts.findIndex(a =&gt; a.startsWith(&#39;VRTC&#39;));
+      if (demoIdx !== -1) {
+        selectedToken = params.tokens[demoIdx];
+        selectedAccount = params.accounts[demoIdx];
+        selectedCurrency = params.currencies[demoIdx];
+      }
+    } else {
+      const realIdx = params.accounts.findIndex(a =&gt; !a.startsWith(&#39;VRTC&#39;));
+      if (realIdx !== -1) {
+        selectedToken = params.tokens[realIdx];
+        selectedAccount = params.accounts[realIdx];
+        selectedCurrency = params.currencies[realIdx];
+      }
+    }
+
+    if (!selectedToken || !selectedAccount) {
+      throw new Error(`No ${isDemo ? &#39;demo&#39; : &#39;real&#39;} account found. Please check your login.`);
+    }
+
+    const marketTypeEl = document.getElementById(&#39;marketType&#39;);
+    const marketText = marketTypeEl.textContent.toLowerCase();
+    
+    // Initialize symbol as null to force proper detection
+    let symbol = null;
+    
+    // Enhanced market detection logic with more specific patterns
+    if (marketText.includes(&#34;volatility&#34;) || marketText.includes(&#34;vol&#34;)) {
+      // Check for 1s volatility indices first (1HZ patterns)
+      if (marketText.includes(&#34;1s&#34;) || marketText.includes(&#34;1hz&#34;)) {
+        if (marketText.includes(&#34;10&#34;)) {
+          symbol = &#34;1HZ10V&#34;;
+        } else if (marketText.includes(&#34;25&#34;)) {
+          symbol = &#34;1HZ25V&#34;;
+        } else if (marketText.includes(&#34;50&#34;)) {
+          symbol = &#34;1HZ50V&#34;;
+        } else if (marketText.includes(&#34;75&#34;)) {
+          symbol = &#34;1HZ75V&#34;;
+        } else if (marketText.includes(&#34;100&#34;)) {
+          symbol = &#34;1HZ100V&#34;;
+        }
+      }
+      // Regular volatility indices (R_ patterns)
+      else {
+        if (marketText.includes(&#34;10&#34;)) {
+          symbol = &#34;R_10&#34;;
+        } else if (marketText.includes(&#34;25&#34;)) {
+          symbol = &#34;R_25&#34;;
+        } else if (marketText.includes(&#34;50&#34;)) {
+          symbol = &#34;R_50&#34;;
+        } else if (marketText.includes(&#34;75&#34;)) {
+          symbol = &#34;R_75&#34;;
+        } else if (marketText.includes(&#34;100&#34;)) {
+          symbol = &#34;R_100&#34;;
+        } else if (marketText.includes(&#34;150&#34;)) {
+          symbol = &#34;R_150&#34;;
+        } else if (marketText.includes(&#34;200&#34;)) {
+          symbol = &#34;R_200&#34;;
+        } else if (marketText.includes(&#34;300&#34;)) {
+          symbol = &#34;R_300&#34;;
+        }
+      }
+    } 
+    // Forex pairs
+    else if (marketText.includes(&#34;eur&#34;) &amp;&amp; marketText.includes(&#34;usd&#34;)) {
+      symbol = &#34;frxEURUSD&#34;;
+    } else if (marketText.includes(&#34;gbp&#34;) &amp;&amp; marketText.includes(&#34;usd&#34;)) {
+      symbol = &#34;frxGBPUSD&#34;;
+    } else if (marketText.includes(&#34;aud&#34;) &amp;&amp; marketText.includes(&#34;usd&#34;)) {
+      symbol = &#34;frxAUDUSD&#34;;
+    } else if (marketText.includes(&#34;usd&#34;) &amp;&amp; marketText.includes(&#34;jpy&#34;)) {
+      symbol = &#34;frxUSDJPY&#34;;
+    }
+    // Crypto
+    else if (marketText.includes(&#34;btc&#34;) || marketText.includes(&#34;bitcoin&#34;)) {
+      symbol = &#34;cryBTCUSD&#34;;
+    } else if (marketText.includes(&#34;eth&#34;) || marketText.includes(&#34;ethereum&#34;)) {
+      symbol = &#34;cryETHUSD&#34;;
+    } else if (marketText.includes(&#34;ltc&#34;) || marketText.includes(&#34;litecoin&#34;)) {
+      symbol = &#34;cryLTCUSD&#34;;
+    }
+
+    // If no symbol was detected, throw an error
+    if (!symbol) {
+      throw new Error(`Market type &#34;${marketTypeEl.textContent}&#34; not recognized`);
+    }
+
+    console.log(&#34;Detected market:&#34;, marketText, &#34;Using symbol:&#34;, symbol);
+
+    const ws = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`);
+    return new Promise((resolve, reject) =&gt; {
+      ws.onopen = () =&gt; {
+        ws.send(JSON.stringify({
+          &#34;authorize&#34;: selectedToken
+        }));
+        ws.onmessage = msg =&gt; {
+          const response = JSON.parse(msg.data);
+          if (response.error) {
+            reject(new Error(response.error.message));
+            ws.close();
+            return;
+          }
+          if (response.authorize) {
+            ws.send(JSON.stringify({
+              &#34;balance&#34;: 1,
+              &#34;subscribe&#34;: 1
+            }));
+            ws.send(JSON.stringify({
+              &#34;proposal&#34;: 1,
+              &#34;amount&#34;: amount,
+              &#34;basis&#34;: &#34;stake&#34;,
+              &#34;contract_type&#34;: direction === &#39;RISE&#39; ? &#34;CALL&#34; : &#34;PUT&#34;,
+              &#34;currency&#34;: selectedCurrency,
+              &#34;symbol&#34;: symbol,
+              &#34;duration&#34;: parseDurationToMinutes(detectedTimeframe),
+              &#34;duration_unit&#34;: &#34;m&#34;
+            }));
+          }
+          if (response.balance) {
+            const elementPrefix = isDemo ? &#39;demo&#39; : &#39;real&#39;;
+            const balanceElement = document.getElementById(`${elementPrefix}AccountBalance`);
+            if (balanceElement) {
+              balanceElement.textContent = `${parseFloat(response.balance.balance).toFixed(2)} ${selectedCurrency}`;
+            }
+          }
+          if (response.proposal) {
+            const request = {
+              &#34;buy&#34;: response.proposal.id,
+              &#34;price&#34;: response.proposal.ask_price
+            };
+            console.log(&#34;Buy request:&#34;, request);
+            ws.send(JSON.stringify(request));
+          }
+          if (response.buy) {
+            resolve({
+              tradeId: response.buy.transaction_id,
+              entryPrice: response.buy.longcode,
+              wsConnection: ws
+            });
+          }
+        };
+      };
+      ws.onerror = error =&gt; {
+        reject(new Error(&#39;WebSocket error occurred&#39;));
+        ws.close();
+      };
+    });
+  } catch (error) {
+    throw error;
+  }
+}
+function showTradeMessage(message, type = &#39;error&#39;) {
+  const messageEl = document.getElementById(&#39;tradeMessage&#39;);
+  messageEl.textContent = message;
+  messageEl.className = `trade-message ${type}`;
+  messageEl.style.display = &#39;block&#39;;
+  messageEl.classList.remove(&#39;fade-out&#39;);
+  setTimeout(() =&gt; {
+    messageEl.classList.add(&#39;fade-out&#39;);
+    setTimeout(() =&gt; {
+      messageEl.style.display = &#39;none&#39;;
+    }, 300);
+  }, 5000);
+}
+function playNotificationSound() {
+  const audio = document.getElementById(&#39;notificationSound&#39;);
+  if (audio) {
+    audio.play().catch(error =&gt; {
+      console.warn(&#39;Could not play notification sound:&#39;, error);
+    });
+  }
+}
+document.addEventListener(&#39;DOMContentLoaded&#39;, function () {
+  // Set up portfolio link with current URL parameters
+  const portfolioLink = document.getElementById(&#39;portfolioLink&#39;);
+  const portfolioModal = document.getElementById(&#39;portfolioModal&#39;);
+  const portfolioFrame = document.getElementById(&#39;portfolioFrame&#39;);
+  const closePortfolio = document.getElementById(&#39;closePortfolio&#39;);
+  const expandPortfolio = document.getElementById(&#39;expandPortfolio&#39;);
+  
+  let portfolioExpanded = false;
+  
+  if (portfolioLink) {
+    portfolioLink.addEventListener(&#39;click&#39;, (e) =&gt; {
+      e.preventDefault();
+      const currentParams = window.location.search;
+      portfolioFrame.src = `portfolio.php${currentParams}`;
+      portfolioModal.classList.remove(&#39;hidden&#39;);
+      
+      // Show iframe when it loads
+      portfolioFrame.onload = () =&gt; {
+        portfolioFrame.classList.remove(&#39;hidden&#39;);
+        portfolioFrame.previousElementSibling.style.display = &#39;none&#39;;
+      };
+    });
+  }
+
+  if (expandPortfolio) {
+    expandPortfolio.addEventListener(&#39;click&#39;, () =&gt; {
+      portfolioExpanded = !portfolioExpanded;
+      const modalContainer = document.getElementById(&#39;portfolioModalContainer&#39;);
+      const modalContent = document.getElementById(&#39;portfolioModalContent&#39;);
+      const expandIcon = expandPortfolio.querySelector(&#39;i&#39;);
+      
+      if (portfolioExpanded) {
+        portfolioModal.classList.add(&#39;modal-expanded&#39;);
+        modalContainer.classList.add(&#39;modal-container&#39;);
+        modalContent.classList.add(&#39;modal-content&#39;);
+        expandIcon.classList.remove(&#39;fa-expand&#39;);
+        expandIcon.classList.add(&#39;fa-compress&#39;);
+      } else {
+        portfolioModal.classList.remove(&#39;modal-expanded&#39;);
+        modalContainer.classList.remove(&#39;modal-container&#39;);
+        modalContent.classList.remove(&#39;modal-content&#39;);
+        expandIcon.classList.remove(&#39;fa-compress&#39;);
+        expandIcon.classList.add(&#39;fa-expand&#39;);
+      }
+    });
+  }
+
+  if (closePortfolio) {
+    closePortfolio.addEventListener(&#39;click&#39;, () =&gt; {
+      portfolioModal.classList.add(&#39;hidden&#39;);
+      portfolioModal.classList.remove(&#39;modal-expanded&#39;);
+      portfolioFrame.src = &#39;&#39;;
+      portfolioFrame.classList.add(&#39;hidden&#39;);
+      portfolioFrame.previousElementSibling.style.display = &#39;block&#39;;
+      portfolioExpanded = false;
+      const expandIcon = expandPortfolio.querySelector(&#39;i&#39;);
+      expandIcon.classList.remove(&#39;fa-compress&#39;);
+      expandIcon.classList.add(&#39;fa-expand&#39;);
+    });
+  }
+
+  // Close modal when clicking outside
+  portfolioModal.addEventListener(&#39;click&#39;, (e) =&gt; {
+    if (e.target === portfolioModal) {
+      portfolioModal.classList.add(&#39;hidden&#39;);
+      portfolioModal.classList.remove(&#39;modal-expanded&#39;);
+      portfolioFrame.src = &#39;&#39;;
+      portfolioFrame.classList.add(&#39;hidden&#39;);
+      portfolioFrame.previousElementSibling.style.display = &#39;block&#39;;
+      portfolioExpanded = false;
+      const expandIcon = expandPortfolio.querySelector(&#39;i&#39;);
+      expandIcon.classList.remove(&#39;fa-compress&#39;);
+      expandIcon.classList.add(&#39;fa-expand&#39;);
+    }
+  });
+
+  // Set up charts link functionality
+  const chartsLink = document.getElementById(&#39;chartsLink&#39;);
+  const chartsModal = document.getElementById(&#39;chartsModal&#39;);
+  const chartsFrame = document.getElementById(&#39;chartsFrame&#39;);
+  const closeCharts = document.getElementById(&#39;closeCharts&#39;);
+  const expandCharts = document.getElementById(&#39;expandCharts&#39;);
+  
+  let chartsExpanded = false;
+  
+  if (chartsLink) {
+    chartsLink.addEventListener(&#39;click&#39;, (e) =&gt; {
+      e.preventDefault();
+      chartsFrame.src = &#39;https://charts.deriv.com&#39;;
+      chartsModal.classList.remove(&#39;hidden&#39;);
+      
+      // Show iframe when it loads
+      chartsFrame.onload = () =&gt; {
+        chartsFrame.classList.remove(&#39;hidden&#39;);
+        chartsFrame.previousElementSibling.style.display = &#39;none&#39;;
+      };
+    });
+  }
+
+  if (expandCharts) {
+    expandCharts.addEventListener(&#39;click&#39;, () =&gt; {
+      chartsExpanded = !chartsExpanded;
+      const modalContainer = document.getElementById(&#39;chartsModalContainer&#39;);
+      const modalContent = document.getElementById(&#39;chartsModalContent&#39;);
+      const expandIcon = expandCharts.querySelector(&#39;i&#39;);
+      
+      if (chartsExpanded) {
+        chartsModal.classList.add(&#39;modal-expanded&#39;);
+        modalContainer.classList.add(&#39;modal-container&#39;);
+        modalContent.classList.add(&#39;modal-content&#39;);
+        expandIcon.classList.remove(&#39;fa-expand&#39;);
+        expandIcon.classList.add(&#39;fa-compress&#39;);
+      } else {
+        chartsModal.classList.remove(&#39;modal-expanded&#39;);
+        modalContainer.classList.remove(&#39;modal-container&#39;);
+        modalContent.classList.remove(&#39;modal-content&#39;);
+        expandIcon.classList.remove(&#39;fa-compress&#39;);
+        expandIcon.classList.add(&#39;fa-expand&#39;);
+      }
+    });
+  }
+
+  if (closeCharts) {
+    closeCharts.addEventListener(&#39;click&#39;, () =&gt; {
+      chartsModal.classList.add(&#39;hidden&#39;);
+      chartsModal.classList.remove(&#39;modal-expanded&#39;);
+      chartsFrame.src = &#39;&#39;;
+      chartsFrame.classList.add(&#39;hidden&#39;);
+      chartsFrame.previousElementSibling.style.display = &#39;block&#39;;
+      chartsExpanded = false;
+      const expandIcon = expandCharts.querySelector(&#39;i&#39;);
+      expandIcon.classList.remove(&#39;fa-compress&#39;);
+      expandIcon.classList.add(&#39;fa-expand&#39;);
+    });
+  }
+
+  // Close charts modal when clicking outside
+  chartsModal.addEventListener(&#39;click&#39;, (e) =&gt; {
+    if (e.target === chartsModal) {
+      chartsModal.classList.add(&#39;hidden&#39;);
+      chartsModal.classList.remove(&#39;modal-expanded&#39;);
+      chartsFrame.src = &#39;&#39;;
+      chartsFrame.classList.add(&#39;hidden&#39;);
+      chartsFrame.previousElementSibling.style.display = &#39;block&#39;;
+      chartsExpanded = false;
+      const expandIcon = expandCharts.querySelector(&#39;i&#39;);
+      expandIcon.classList.remove(&#39;fa-compress&#39;);
+      expandIcon.classList.add(&#39;fa-expand&#39;);
+    }
+  });
+
+  getAccountDetails().catch(error =&gt; {
+    console.error(&#39;Failed to fetch account details:&#39;, error);
+  });
+  const accountNumber = document.getElementById(&#39;accountNumber&#39;);
+  const accountBalance = document.getElementById(&#39;accountBalance&#39;);
+  const imagePreview = document.querySelector(&#39;.image-preview&#39;);
+  const fileInput = document.getElementById(&#39;fileInput&#39;);
+  const uploadedImage = document.getElementById(&#39;uploadedImage&#39;);
+  const uploadPrompt = document.getElementById(&#39;uploadPrompt&#39;);
+  const analysisButton = document.getElementById(&#39;analysisButton&#39;);
+  const confidenceFill = document.querySelector(&#39;.confidence-fill&#39;);
+  const marketTrend = document.querySelector(&#39;.market-trend&#39;);
+  const analysisText = document.getElementById(&#39;analysisText&#39;);
+  const risePercentage = document.getElementById(&#39;risePercentage&#39;);
+  const fallPercentage = document.getElementById(&#39;fallPercentage&#39;);
+  const tradeActions = document.getElementById(&#39;tradeActions&#39;);
+  const riseTradeBtn = document.getElementById(&#39;riseTradeBtn&#39;);
+  const fallTradeBtn = document.getElementById(&#39;fallTradeBtn&#39;);
+  const hints = [&#34;Click to upload market screenshot&#34;, &#34;Upload detailed screenshot&#34;, &#34;Make sure your picture is clear&#34;, &#34;Best results with clear charts&#34;, &#34;High quality images work better&#34;];
+  let currentHintIndex = 0;
+  const hintContainer = document.getElementById(&#39;hintContainer&#39;);
+  function createAndAnimateHint() {
+    const hintElement = document.createElement(&#39;p&#39;);
+    hintElement.className = &#39;hint-text&#39;;
+    hintElement.textContent = hints[currentHintIndex];
+    while (hintContainer.firstChild) {
+      hintContainer.removeChild(hintContainer.firstChild);
+    }
+    hintContainer.appendChild(hintElement);
+    currentHintIndex = (currentHintIndex + 1) % hints.length;
+  }
+  createAndAnimateHint();
+  setInterval(createAndAnimateHint, 4000);
+  imagePreview.addEventListener(&#39;click&#39;, () =&gt; {
+    fileInput.click();
+  });
+  fileInput.addEventListener(&#39;change&#39;, function (e) {
+    if (e.target.files &amp;&amp; e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        uploadedImage.src = e.target.result;
+        uploadedImage.style.display = &#39;block&#39;;
+        uploadPrompt.style.display = &#39;none&#39;;
+        analysisButton.disabled = false;
+        tradeActions.style.display = &#39;none&#39;;
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  });
+  analysisButton.addEventListener(&#39;click&#39;, async function () {
+    if (uploadedImage.style.display !== &#39;block&#39;) {
+      analysisText.textContent = &#39;Kindly attach Market Chart Screenshot&#39;;
+      return;
+    }
+    try {
+      confidenceFill.style.width = &#39;0%&#39;;
+      marketTrend.style.opacity = &#39;0&#39;;
+      analysisText.textContent = &#39;Analyzing...&#39;;
+      analysisButton.classList.add(&#39;loading&#39;);
+      analysisButton.innerHTML = &#39;&lt;i class=&#34;fas fa-circle-notch mr-2&#34;&gt;&lt;/i&gt;Analyzing...&#39;;
+      analysisButton.disabled = true;
+      const base64Image = uploadedImage.src;
+      try {
+        const analysis = await analyzeImage(base64Image);
+        if (analysis &amp;&amp; analysis.candidates &amp;&amp; analysis.candidates[0] &amp;&amp; analysis.candidates[0].content) {
+          const result = analysis.candidates[0].content.parts[0].text;
+          console.log(&#39;Analysis result:&#39;, result);
+          const marketMatch = result.match(/market:?\s*([^,\n]+)/i);
+          const timeframeMatch = result.match(/timeframe:?\s*([^,\n]+)/i);
+          const riseMatch = result.match(/rise:?\s*(\d+)%/i);
+          const fallMatch = result.match(/fall:?\s*(\d+)%/i);
+          if (timeframeMatch) {
+            const timeframeText = timeframeMatch[1].trim().toLowerCase();
+            detectedTimeframe = parseTimeframe(timeframeText);
+          }
+          updateTradeButtonsTimeframe(detectedTimeframe);
+          const marketType = document.getElementById(&#39;marketType&#39;);
+          const timeframe = document.getElementById(&#39;timeframe&#39;);
+          marketType.textContent = marketMatch ? marketMatch[1].trim() : &#39;Unknown Market&#39;;
+          timeframe.textContent = timeframeMatch ? timeframeMatch[1].trim() : &#39;Unknown Timeframe&#39;;
+          const risePercent = riseMatch ? parseInt(riseMatch[1]) : 50;
+          const fallPercent = fallMatch ? parseInt(fallMatch[1]) : 50;
+          confidenceFill.style.width = `${Math.max(risePercent, fallPercent)}%`;
+          risePercentage.textContent = `${risePercent}%`;
+          fallPercentage.textContent = `${fallPercent}%`;
+          marketTrend.style.opacity = &#39;1&#39;;
+          analysisText.textContent = result;
+          tradeActions.style.display = &#39;flex&#39;;
+          riseTradeBtn.disabled = risePercent &lt; 60;
+          fallTradeBtn.disabled = fallPercent &lt; 60;
+        }
+      } catch (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error(&#39;Analysis error:&#39;, error);
+      analysisText.textContent = &#39;Analysis failed: &#39; + error.message;
+    } finally {
+      analysisButton.classList.remove(&#39;loading&#39;);
+      analysisButton.innerHTML = &#39;&lt;i class=&#34;fas fa-chart-line mr-2&#34;&gt;&lt;/i&gt;Analyze Market&#39;;
+      analysisButton.disabled = false;
+    }
+  });
+  const accountToggle = document.getElementById(&#39;accountToggle&#39;);
+  const tradeAmount = document.getElementById(&#39;tradeAmount&#39;);
+  const tradeCurrency = document.getElementById(&#39;tradeCurrency&#39;);
+  
+  function updateAccountUI() {
+    const isDemo = accountToggle.checked;
+    const labelText = document.querySelector(&#39;.label-text&#39;);
+    const realSection = document.querySelectorAll(&#39;.account-section&#39;)[0];
+    const demoSection = document.querySelectorAll(&#39;.account-section&#39;)[1];
+    const params = getUrlParams();
+
+    if (isDemo) {
+      if (labelText) labelText.textContent = &#39;Demo&#39;;
+      if (demoSection) {
+        demoSection.style.background = &#39;rgba(234, 179, 8, 0.1)&#39;;
+        demoSection.style.border = &#39;1px solid rgba(234, 179, 8, 0.3)&#39;;
+        demoSection.style.borderRadius = &#39;8px&#39;;
+        demoSection.style.padding = &#39;4px&#39;;
+      }
+      if (realSection) {
+        realSection.style.background = &#39;transparent&#39;;
+        realSection.style.border = &#39;none&#39;;
+        realSection.style.opacity = &#39;0.5&#39;;
+      }
+      const demoIdx = params.accounts.findIndex(a =&gt; a.startsWith(&#39;VRTC&#39;));
+      if (demoIdx !== -1) tradeCurrency.textContent = params.currencies[demoIdx];
+    } else {
+      if (labelText) labelText.textContent = &#39;Real&#39;;
+      if (realSection) {
+        realSection.style.background = &#39;rgba(34, 197, 94, 0.1)&#39;;
+        realSection.style.border = &#39;1px solid rgba(34, 197, 94, 0.3)&#39;;
+        realSection.style.borderRadius = &#39;8px&#39;;
+        realSection.style.padding = &#39;4px&#39;;
+        realSection.style.opacity = &#39;1&#39;;
+      }
+      if (demoSection) {
+        demoSection.style.background = &#39;transparent&#39;;
+        demoSection.style.border = &#39;none&#39;;
+        demoSection.style.opacity = &#39;0.5&#39;;
+      }
+      const realIdx = params.accounts.findIndex(a =&gt; !a.startsWith(&#39;VRTC&#39;));
+      if (realIdx !== -1) tradeCurrency.textContent = params.currencies[realIdx];
+    }
+  }
+
+  accountToggle.addEventListener(&#39;change&#39;, updateAccountUI);
+  
+  const params = getUrlParams();
+  // Set initial toggle state based on available accounts
+  const hasReal = params.accounts.some(a =&gt; !a.startsWith(&#39;VRTC&#39;));
+  const hasDemo = params.accounts.some(a =&gt; a.startsWith(&#39;VRTC&#39;));
+  
+  if (!hasReal &amp;&amp; hasDemo) {
+    accountToggle.checked = true;
+  }
+  
+  updateAccountUI();
+  tradeAmount.addEventListener(&#39;input&#39;, function () {
+    if (this.value &lt; 1) {
+      this.value = 1;
+    }
+  });
+  let pendingTradeDirection = null;
+
+  function showTradeWarning(direction) {
+    const risePercent = parseInt(document.getElementById(&#39;risePercentage&#39;).textContent);
+    const fallPercent = parseInt(document.getElementById(&#39;fallPercentage&#39;).textContent);
+    
+    const isAgainstPrediction = 
+      (direction === &#39;RISE&#39; &amp;&amp; fallPercent &gt; risePercent) ||
+      (direction === &#39;FALL&#39; &amp;&amp; risePercent &gt; fallPercent);
+    
+    if (!isAgainstPrediction) {
+      return false;
+    }
+
+    const warningMessage = document.getElementById(&#39;warningMessage&#39;);
+    if (direction === &#39;RISE&#39;) {
+      warningMessage.textContent = `AI predicts FALL (${fallPercent}%) - You&#39;re trading RISE`;
+    } else {
+      warningMessage.textContent = `AI predicts RISE (${risePercent}%) - You&#39;re trading FALL`;
+    }
+
+    pendingTradeDirection = direction;
+    document.getElementById(&#39;tradeWarningModal&#39;).classList.add(&#39;show&#39;);
+    return true;
+  }
+
+  document.getElementById(&#39;cancelTradeBtn&#39;).addEventListener(&#39;click&#39;, () =&gt; {
+    document.getElementById(&#39;tradeWarningModal&#39;).classList.remove(&#39;show&#39;);
+    pendingTradeDirection = null;
+  });
+
+  document.getElementById(&#39;proceedTradeBtn&#39;).addEventListener(&#39;click&#39;, async () =&gt; {
+    document.getElementById(&#39;tradeWarningModal&#39;).classList.remove(&#39;show&#39;);
+    if (pendingTradeDirection === &#39;RISE&#39;) {
+      await executeRiseTrade();
+    } else if (pendingTradeDirection === &#39;FALL&#39;) {
+      await executeFallTrade();
+    }
+    pendingTradeDirection = null;
+  });
+
+  async function executeRiseTrade() {
+    try {
+      if (!tradeAmount.value || isNaN(tradeAmount.value)) {
+        alert(&#39;Please enter a valid trade amount&#39;);
+        return;
+      }
+      riseTradeBtn.disabled = true;
+      fallTradeBtn.disabled = true;
+      riseTradeBtn.innerHTML = &#39;&lt;i class=&#34;fas fa-circle-notch fa-spin&#34;&gt;&lt;/i&gt; Processing...&#39;;
+      const result = await executeTrade(&#39;RISE&#39;);
+      playNotificationSound();
+      const successMessage = `
+        Trade executed successfully!
+        Direction: RISE
+        Amount: ${tradeAmount.value} ${tradeCurrency.textContent}
+        Duration: ${detectedTimeframe}
+        Trade ID: ${result.tradeId || &#39;N/A&#39;}
+        ${result.entryPrice || &#39;&#39;}
+      `;
+      showTradeMessage(successMessage, &#39;success&#39;);
+      setTimeout(() =&gt; {
+        if (result.wsConnection) {
+          result.wsConnection.close();
+        }
+      }, 5000);
+    } catch (error) {
+      console.error(&#39;Trade execution error:&#39;, error);
+      showTradeMessage(`Trade execution failed: ${error.message}`, &#39;error&#39;);
+    } finally {
+      riseTradeBtn.disabled = false;
+      fallTradeBtn.disabled = false;
+      riseTradeBtn.innerHTML = `&lt;i class=&#34;fas fa-arrow-up&#34;&gt;&lt;/i&gt;&lt;span&gt;Rise (${detectedTimeframe})&lt;/span&gt;`;
+    }
+  }
+
+  async function executeFallTrade() {
+    try {
+      if (!tradeAmount.value || isNaN(tradeAmount.value)) {
+        alert(&#39;Please enter a valid trade amount&#39;);
+        return;
+      }
+      riseTradeBtn.disabled = true;
+      fallTradeBtn.disabled = true;
+      fallTradeBtn.innerHTML = &#39;&lt;i class=&#34;fas fa-circle-notch fa-spin&#34;&gt;&lt;/i&gt; Processing...&#39;;
+      const result = await executeTrade(&#39;FALL&#39;);
+      playNotificationSound();
+      const successMessage = `
+        Trade executed successfully!
+        Direction: FALL
+        Amount: ${tradeAmount.value} ${tradeCurrency.textContent}
+        Duration: ${detectedTimeframe}
+        Trade ID: ${result.tradeId || &#39;N/A&#39;}
+        ${result.entryPrice || &#39;&#39;}
+      `;
+      showTradeMessage(successMessage, &#39;success&#39;);
+      setTimeout(() =&gt; {
+        if (result.wsConnection) {
+          result.wsConnection.close();
+        }
+      }, 5000);
+    } catch (error) {
+      console.error(&#39;Trade execution error:&#39;, error);
+      showTradeMessage(`Trade execution failed: ${error.message}`, &#39;error&#39;);
+    } finally {
+      riseTradeBtn.disabled = false;
+      fallTradeBtn.disabled = false;
+      fallTradeBtn.innerHTML = `&lt;i class=&#34;fas fa-arrow-down&#34;&gt;&lt;/i&gt;&lt;span&gt;Fall (${detectedTimeframe})&lt;/span&gt;`;
+    }
+  }
+
+  // Add both click and touchend event listeners for better mobile/webview support
+  const handleRiseTrade = async (e) =&gt; {
+    e.preventDefault();
+    e.stopPropagation();
+    if (showTradeWarning(&#39;RISE&#39;)) {
+      return;
+    }
+    try {
+      if (!tradeAmount.value || isNaN(tradeAmount.value)) {
+        alert(&#39;Please enter a valid trade amount&#39;);
+        return;
+      }
+      riseTradeBtn.disabled = true;
+      fallTradeBtn.disabled = true;
+      riseTradeBtn.innerHTML = &#39;&lt;i class=&#34;fas fa-circle-notch fa-spin&#34;&gt;&lt;/i&gt; Processing...&#39;;
+      const result = await executeTrade(&#39;RISE&#39;);
+      playNotificationSound();
+      const successMessage = `
+        Trade executed successfully!
+        Direction: RISE
+        Amount: ${tradeAmount.value} ${tradeCurrency.textContent}
+        Duration: ${detectedTimeframe}
+        Trade ID: ${result.tradeId || &#39;N/A&#39;}
+        ${result.entryPrice || &#39;&#39;}
+      `;
+      showTradeMessage(successMessage, &#39;success&#39;);
+      setTimeout(() =&gt; {
+        if (result.wsConnection) {
+          result.wsConnection.close();
+        }
+      }, 5000);
+    } catch (error) {
+      console.error(&#39;Trade execution error:&#39;, error);
+      showTradeMessage(`Trade execution failed: ${error.message}`, &#39;error&#39;);
+    } finally {
+      riseTradeBtn.disabled = false;
+      fallTradeBtn.disabled = false;
+      riseTradeBtn.innerHTML = `&lt;i class=&#34;fas fa-arrow-up&#34;&gt;&lt;/i&gt;&lt;span&gt;Rise (${detectedTimeframe})&lt;/span&gt;`;
+    }
+  };
+  
+  riseTradeBtn.addEventListener(&#39;click&#39;, handleRiseTrade);
+  riseTradeBtn.addEventListener(&#39;touchend&#39;, handleRiseTrade);
+  const handleFallTrade = async (e) =&gt; {
+    e.preventDefault();
+    e.stopPropagation();
+    if (showTradeWarning(&#39;FALL&#39;)) {
+      return;
+    }
+    try {
+      if (!tradeAmount.value || isNaN(tradeAmount.value)) {
+        alert(&#39;Please enter a valid trade amount&#39;);
+        return;
+      }
+      riseTradeBtn.disabled = true;
+      fallTradeBtn.disabled = true;
+      fallTradeBtn.innerHTML = &#39;&lt;i class=&#34;fas fa-circle-notch fa-spin&#34;&gt;&lt;/i&gt; Processing...&#39;;
+      const result = await executeTrade(&#39;FALL&#39;);
+      playNotificationSound();
+      const successMessage = `
+        Trade executed successfully!
+        Direction: FALL
+        Amount: ${tradeAmount.value} ${tradeCurrency.textContent}
+        Duration: ${detectedTimeframe}
+        Trade ID: ${result.tradeId || &#39;N/A&#39;}
+        ${result.entryPrice || &#39;&#39;}
+      `;
+      showTradeMessage(successMessage, &#39;success&#39;);
+      setTimeout(() =&gt; {
+        if (result.wsConnection) {
+          result.wsConnection.close();
+        }
+      }, 5000);
+    } catch (error) {
+      console.error(&#39;Trade execution error:&#39;, error);
+      showTradeMessage(`Trade execution failed: ${error.message}`, &#39;error&#39;);
+    } finally {
+      riseTradeBtn.disabled = false;
+      fallTradeBtn.disabled = false;
+      fallTradeBtn.innerHTML = `&lt;i class=&#34;fas fa-arrow-down&#34;&gt;&lt;/i&gt;&lt;span&gt;Fall (${detectedTimeframe})&lt;/span&gt;`;
+    }
+  };
+  
+  fallTradeBtn.addEventListener(&#39;click&#39;, handleFallTrade);
+  fallTradeBtn.addEventListener(&#39;touchend&#39;, handleFallTrade);
+  fileInput.addEventListener(&#39;change&#39;, function (e) {
+    if (e.target.files &amp;&amp; e.target.files[0]) {
+      tradeActions.style.display = &#39;none&#39;;
+    }
+  });
+});
+function parseTimeframe(timeframeText) {
+  if (timeframeText.includes(&#39;minute&#39;) || timeframeText.includes(&#39;min&#39;)) {
+    const minutes = parseInt(timeframeText.match(/\d+/)) || 5;
+    return `${minutes}m`;
+  }
+  if (timeframeText.includes(&#39;hour&#39;) || timeframeText.includes(&#39;hr&#39;)) {
+    const hours = parseInt(timeframeText.match(/\d+/)) || 1;
+    return `${hours}h`;
+  }
+  if (timeframeText.includes(&#39;day&#39;)) {
+    const days = parseInt(timeframeText.match(/\d+/)) || 1;
+    return `${days}d`;
+  }
+  return &#39;5m&#39;;
+}
+function updateTradeButtonsTimeframe(timeframe) {
+  const riseTradeBtn = document.getElementById(&#39;riseTradeBtn&#39;);
+  const fallTradeBtn = document.getElementById(&#39;fallTradeBtn&#39;);
+  if (riseTradeBtn) {
+    riseTradeBtn.innerHTML = `&lt;i class=&#34;fas fa-arrow-up&#34;&gt;&lt;/i&gt;&lt;span&gt;Rise (${timeframe})&lt;/span&gt;`;
+  }
+  if (fallTradeBtn) {
+    fallTradeBtn.innerHTML = `&lt;i class=&#34;fas fa-arrow-down&#34;&gt;&lt;/i&gt;&lt;span&gt;Fall (${timeframe})&lt;/span&gt;`;
+  }
+}
+function parseDurationToMinutes(timeframe) {
+  const value = parseInt(timeframe);
+  const unit = timeframe.slice(-1).toLowerCase();
+  switch (unit) {
+    case &#39;m&#39;:
+      return value;
+    case &#39;h&#39;:
+      return value * 60;
+    case &#39;d&#39;:
+      return value * 24 * 60;
+    default:
+      return 5;
+  }
+}
+function showError(accountNumberId, accountBalanceId, message = &#39;Error loading account&#39;) {
+  const accountNumber = document.getElementById(accountNumberId);
+  const accountBalance = document.getElementById(accountBalanceId);
+  if (accountNumber) {
+    accountNumber.textContent = message;
+    accountNumber.classList.add(&#39;error&#39;);
+  }
+  if (accountBalance) {
+    accountBalance.textContent = &#39;Error loading balance&#39;;
+    accountBalance.classList.add(&#39;error&#39;);
+  }
+}
+    </script>
+    <script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon="{&#34;version&#34;:&#34;2024.11.0&#34;,&#34;token&#34;:&#34;d429fca9b2054e6ba337c451b6c0bc78&#34;,&#34;r&#34;:1,&#34;server_timing&#34;:{&#34;name&#34;:{&#34;cfCacheStatus&#34;:true,&#34;cfEdge&#34;:true,&#34;cfExtPri&#34;:true,&#34;cfL4&#34;:true,&#34;cfOrigin&#34;:true,&#34;cfSpeedBrain&#34;:true},&#34;location_startswith&#34;:null}}" crossorigin="anonymous">
+    </script>
+  </body>
+</html>
