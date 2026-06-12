@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { ShellHeader } from './shell-header';
 import { SUB_APPS, matchSubApp, buildIframeSrc } from '@/lib/sub-apps';
 import { TenantContext, useTenantLoader } from '@/hooks/use-tenant';
+import { AuthContext } from '@/hooks/use-auth-context';
 
 const STATIC_NAV_START = [
   { label: 'Home', path: '/', icon: '⌂', accent: 'text-zinc-400', accentDim: 'text-zinc-600 dark:text-zinc-500' },
@@ -180,6 +181,7 @@ export function Shell({ children, isDev }: ShellProps) {
 
   return (
     <TenantContext.Provider value={tenant}>
+    <AuthContext.Provider value={auth}>
     <div className="flex flex-col h-dvh bg-[var(--background)] text-[var(--foreground)] overflow-hidden">
       <ShellHeader
         authState={auth.authState}
@@ -320,6 +322,7 @@ export function Shell({ children, isDev }: ShellProps) {
         </main>
       </div>
     </div>
+    </AuthContext.Provider>
     </TenantContext.Provider>
   );
 }
