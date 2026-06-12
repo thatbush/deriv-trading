@@ -29,12 +29,14 @@ export async function POST(request: Request) {
   if (!base64) {
     return NextResponse.json({ error: 'Missing image' }, { status: 400 });
   }
+  // Honour the real mime type from the data URL (screenshots are often PNG).
+  const mimeType = body.image?.match(/^data:([^;]+);/)?.[1] ?? 'image/jpeg';
 
   const payload = {
     contents: [{
       parts: [
         { text: PROMPT },
-        { inline_data: { mime_type: 'image/jpeg', data: base64 } },
+        { inline_data: { mime_type: mimeType, data: base64 } },
       ],
     }],
     generationConfig: { temperature: 0.7, topK: 32, topP: 1, maxOutputTokens: 20000 },
