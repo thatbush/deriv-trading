@@ -204,20 +204,18 @@ export function TradeControls({
         )}
       </div>
 
-      {/* Buy button — fixed above footer on mobile, inline on desktop */}
-      <div className="max-lg:fixed max-lg:bottom-[calc(env(safe-area-inset-bottom)+2.5rem)] max-lg:left-3 max-lg:right-3 lg:static">
-        <Button
-          className="w-full h-10 rounded-full px-6 sm:h-11 sm:px-8"
-          disabled={!isConnected || !proposal || isBuying}
-          onClick={onBuy}
-        >
-          {isBuying
-            ? 'Purchasing...'
-            : proposal
-              ? `Buy @ ${proposal.askPrice.toFixed(2)} USD`
-              : 'Buy Contract'}
-        </Button>
-      </div>
+      {/* Buy button — inline in the trade section (like Accumulators) */}
+      <Button
+        className="w-full h-10 rounded-full px-6 sm:h-11 sm:px-8"
+        disabled={!isConnected || !proposal || isBuying}
+        onClick={onBuy}
+      >
+        {isBuying
+          ? 'Purchasing...'
+          : proposal
+            ? `Buy @ ${proposal.askPrice.toFixed(2)} USD`
+            : 'Buy Contract'}
+      </Button>
 
       {isAuthenticated && (
         <Button asChild variant="ghost" className="w-full text-sm text-muted-foreground hover:text-foreground">
