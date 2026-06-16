@@ -213,97 +213,100 @@ export default function AiBots() {
         </p>
       </section>
 
-      <section className="px-6 pb-10 max-w-2xl mx-auto w-full space-y-5">
-        {/* Account strip */}
-        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 text-sm">
-          {isAuthed && activeAccount ? (
-            <div className="flex items-center justify-between">
-              <span className="text-zinc-500">
-                {activeAccount.account_type === 'demo' ? 'Demo' : 'Real'} · {activeAccount.account_id}
-              </span>
-              <span className="font-semibold">
-                {activeAccount.balance} {activeAccount.currency}
-              </span>
+      <section className="px-6 pb-10 max-w-2xl mx-auto w-full">
+        {/* Darker themed card — matches Rise & Fall card-over-background look */}
+        <div className="rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 p-4 sm:p-5 space-y-5">
+          {/* Account strip */}
+          <div className="rounded-xl bg-zinc-200/60 dark:bg-zinc-800 p-4 text-sm">
+            {isAuthed && activeAccount ? (
+              <div className="flex items-center justify-between">
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  {activeAccount.account_type === 'demo' ? 'Demo' : 'Real'} · {activeAccount.account_id}
+                </span>
+                <span className="font-semibold">
+                  {activeAccount.balance} {activeAccount.currency}
+                </span>
+              </div>
+            ) : (
+              <span className="text-zinc-500 dark:text-zinc-400">Log in (top-right) to place trades.</span>
+            )}
+          </div>
+
+          {/* Upload */}
+          <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="w-full rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-700 p-6 text-center hover:border-[rgb(0,195,144)] transition-colors"
+          >
+            {image ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={image} alt="Chart preview" className="mx-auto max-h-64 rounded-lg" />
+                <p className="text-xs text-zinc-500 mt-3">Tap to change image</p>
+              </>
+            ) : (
+              <p className="text-sm text-zinc-500">Tap to upload a chart screenshot</p>
+            )}
+          </button>
+
+          {image && (
+            <button
+              onClick={analyze}
+              disabled={analyzing}
+              className="w-full rounded-full bg-[rgb(0,195,144)] hover:bg-[rgb(0,175,130)] disabled:opacity-60 text-white font-semibold py-3 transition-colors"
+            >
+              {analyzing ? 'Analyzing…' : 'Analyze chart'}
+            </button>
+          )}
+
+          {/* Prediction */}
+          {pred && (
+            <div className="rounded-xl bg-zinc-200/60 dark:bg-zinc-800 p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-lg font-semibold">{pred.market}</p>
+                  <p className="text-xs text-zinc-500">Timeframe: {pred.timeframe}</p>
+                </div>
+                <div className="text-right text-sm font-semibold">
+                  <p className="text-emerald-500">Rise {pred.risePercent}%</p>
+                  <p className="text-red-500">Fall {pred.fallPercent}%</p>
+                </div>
+              </div>
+
+              <p className="text-sm text-zinc-600 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
+                {pred.text}
+              </p>
+
+              <label className="block text-sm">
+                <span className="text-zinc-500">Amount</span>
+                <input
+                  type="number"
+                  min={1}
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  className="mt-1 w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2"
+                />
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => attemptTrade('RISE')}
+                  disabled={trading || !isAuthed}
+                  className="rounded-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-semibold py-3 transition-colors"
+                >
+                  {trading ? 'Processing…' : `Rise (${pred.timeframe})`}
+                </button>
+                <button
+                  onClick={() => attemptTrade('FALL')}
+                  disabled={trading || !isAuthed}
+                  className="rounded-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-semibold py-3 transition-colors"
+                >
+                  {trading ? 'Processing…' : `Fall (${pred.timeframe})`}
+                </button>
+              </div>
             </div>
-          ) : (
-            <span className="text-zinc-500">Log in (top-right) to place trades.</span>
           )}
         </div>
-
-        {/* Upload */}
-        <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
-        <button
-          onClick={() => fileRef.current?.click()}
-          className="w-full rounded-2xl border-2 border-dashed border-zinc-300 dark:border-zinc-700 p-6 text-center hover:border-violet-400 transition-colors"
-        >
-          {image ? (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image} alt="Chart preview" className="mx-auto max-h-64 rounded-lg" />
-              <p className="text-xs text-zinc-500 mt-3">Tap to change image</p>
-            </>
-          ) : (
-            <p className="text-sm text-zinc-500">Tap to upload a chart screenshot</p>
-          )}
-        </button>
-
-        {image && (
-          <button
-            onClick={analyze}
-            disabled={analyzing}
-            className="w-full rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white font-semibold py-3 transition-colors"
-          >
-            {analyzing ? 'Analyzing…' : 'Analyze chart'}
-          </button>
-        )}
-
-        {/* Prediction */}
-        {pred && (
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-lg font-semibold">{pred.market}</p>
-                <p className="text-xs text-zinc-500">Timeframe: {pred.timeframe}</p>
-              </div>
-              <div className="text-right text-sm font-semibold">
-                <p className="text-emerald-500">Rise {pred.risePercent}%</p>
-                <p className="text-red-500">Fall {pred.fallPercent}%</p>
-              </div>
-            </div>
-
-            <p className="text-sm text-zinc-600 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
-              {pred.text}
-            </p>
-
-            <label className="block text-sm">
-              <span className="text-zinc-500">Amount</span>
-              <input
-                type="number"
-                min={1}
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                className="mt-1 w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2"
-              />
-            </label>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => attemptTrade('RISE')}
-                disabled={trading || !isAuthed}
-                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-semibold py-3 transition-colors"
-              >
-                {trading ? 'Processing…' : `Rise (${pred.timeframe})`}
-              </button>
-              <button
-                onClick={() => attemptTrade('FALL')}
-                disabled={trading || !isAuthed}
-                className="rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-semibold py-3 transition-colors"
-              >
-                {trading ? 'Processing…' : `Fall (${pred.timeframe})`}
-              </button>
-            </div>
-          </div>
-        )}
       </section>
 
       <PageFooter />

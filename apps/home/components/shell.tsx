@@ -15,9 +15,9 @@ const STATIC_NAV_END = [
   {
     label: 'Bots', path: '/bots', icon: '⚙', accent: 'text-violet-400', accentDim: 'text-violet-600 dark:text-violet-500',
     children: [
-      { label: 'AI', path: '/bots/ai' },
-      { label: 'XML', path: '/bots/xml' },
-      { label: 'Inbuilt', path: '/bots/inbuilt' },
+      { label: 'AI', path: '/bots/ai', icon: '✦' },
+      { label: 'XML', path: '/bots/xml', icon: '</>' },
+      { label: 'Inbuilt', path: '/bots/inbuilt', icon: '★' },
     ],
   },
   { label: 'About', path: '/about', icon: '❋', accent: 'text-pink-400', accentDim: 'text-pink-600 dark:text-pink-500' },
@@ -229,7 +229,7 @@ export function Shell({ children, isDev }: ShellProps) {
             {navItems.map((item) => {
               const isActive = activeNavPath === item.path;
               const children = ('children' in item ? item.children : undefined) as
-                | { label: string; path: string }[]
+                | { label: string; path: string; icon: string }[]
                 | undefined;
               const itemClass = (active: boolean) => [
                 'flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left transition-colors w-full',
@@ -275,6 +275,9 @@ export function Shell({ children, isDev }: ShellProps) {
                               onClick={() => navigateTo(child.path)}
                               className={itemClass(childActive)}
                             >
+                              <span className={`text-base w-5 text-center ${childActive ? item.accent : item.accentDim}`}>
+                                {child.icon}
+                              </span>
                               {child.label}
                             </button>
                           );
