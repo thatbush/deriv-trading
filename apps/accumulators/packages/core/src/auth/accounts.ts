@@ -6,6 +6,7 @@ import {
   clearAllAuthData,
 } from './storage';
 import { getApiBaseUrl } from '../config/urls';
+import { OAuthError } from './oauth';
 
 /**
  * Fetch the list of trading accounts for the authenticated user.
@@ -22,7 +23,7 @@ export async function fetchAccounts(
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch accounts (${response.status})`);
+    throw new OAuthError(`Failed to fetch accounts (${response.status})`, response.status);
   }
 
   const data = await response.json();
@@ -56,7 +57,7 @@ export async function getWebSocketOTP(
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to get WebSocket OTP (${response.status})`);
+    throw new OAuthError(`Failed to get WebSocket OTP (${response.status})`, response.status);
   }
 
   const data: OTPResponse = await response.json();

@@ -17,6 +17,7 @@ import {
   setAccountType,
   clearAllAuthData,
   parseReferralLink,
+  isAuthRejection,
 } from '@deriv/core';
 import type { AuthInfo, DerivAccount, AuthState, AuthConfig } from '@deriv/core';
 import type { TenantConfig } from '@/lib/tenant-types';
@@ -180,9 +181,10 @@ export function useAuth(tenant: TenantConfig, tenantReady = true): UseAuthReturn
               buildAuthConfig(tenant).clientId
             );
             await completeAuth(refreshed);
-          } catch {
-            // Refresh failed — fall back to unauthenticated (public WS)
-            clearAllAuthData();
+          } catch (err) {
+            // Genuine rejection (401/403) → clear. Transient/aborted → keep creds
+            // so the next load can retry (refreshAccessToken only self-clears on 401/403).
+            if (isAuthRejection(err)) clearAllAuthData();
             setAuthState('unauthenticated');
           }
           return;
@@ -199,17 +201,20 @@ export function useAuth(tenant: TenantConfig, tenantReady = true): UseAuthReturn
             const otpUrl = await fetchOTPUrl(loginId, storedAuth);
             setWsUrl(otpUrl);
             setAuthState('authenticated');
-          } catch {
-            // OTP fetch failed — token may be invalid, clear and fallback
-            clearAllAuthData();
+          } catch (err) {
+            // Only wipe the session on a genuine auth rejection (401/403). A
+            // transient failure — network blip, or the fetch aborted because the
+            // user reloaded mid-restore — must keep stored creds so the next load
+            // can restore. (Clearing here was the "logout on quick double-reload" bug.)
+            if (isAuthRejection(err)) clearAllAuthData();
             setAuthState('unauthenticated');
           }
         } else {
           // Have auth info but no accounts — re-fetch
           try {
             await completeAuth(storedAuth);
-          } catch {
-            clearAllAuthData();
+          } catch (err) {
+            if (isAuthRejection(err)) clearAllAuthData();
             setAuthState('unauthenticated');
           }
         }

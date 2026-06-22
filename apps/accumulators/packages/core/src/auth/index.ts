@@ -10,6 +10,7 @@ export {
   handleOAuthCallback,
   cleanupUrl,
   OAuthError,
+  isAuthRejection,
 } from './oauth';
 
 export {

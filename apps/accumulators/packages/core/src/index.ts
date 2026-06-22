@@ -11,6 +11,7 @@ export {
   handleOAuthCallback,
   cleanupUrl,
   OAuthError,
+  isAuthRejection,
   fetchAccounts,
   getWebSocketOTP,
   logout,

@@ -194,8 +194,10 @@ export async function refreshAccessToken(
   });
 
   if (!response.ok) {
-    clearAllAuthData();
-    throw new OAuthError(`Token refresh failed (${response.status})`);
+    // Only a genuine auth rejection should wipe the session; let transient
+    // failures (5xx) propagate with status so the caller can keep creds + retry.
+    if (response.status === 401 || response.status === 403) clearAllAuthData();
+    throw new OAuthError(`Token refresh failed (${response.status})`, response.status);
   }
 
   const tokenData = await response.json();
@@ -256,8 +258,20 @@ export function cleanupUrl(baseUrl: string): void {
  * Custom error class for OAuth-specific errors.
  */
 export class OAuthError extends Error {
-  constructor(message: string) {
+  /** HTTP status when the error came from a failed response; undefined for network/abort/logic errors. */
+  readonly status?: number;
+  constructor(message: string, status?: number) {
     super(message);
     this.name = 'OAuthError';
+    this.status = status;
   }
+}
+
+/**
+ * True only for a genuine auth rejection (token invalid/expired): HTTP 401/403.
+ * Transient failures (network error, aborted request on reload, 5xx) return false,
+ * so callers can keep stored credentials and retry instead of clearing the session.
+ */
+export function isAuthRejection(err: unknown): boolean {
+  return err instanceof OAuthError && (err.status === 401 || err.status === 403);
 }
