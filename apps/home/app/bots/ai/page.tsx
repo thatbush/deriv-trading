@@ -151,6 +151,11 @@ export default function AiBots() {
 
     const ws = new WebSocket(wsUrl);
     let settled = false;
+    let contractId: number | null = null;
+    let pendingResult: { kind: Toast['kind']; msg: string } | null = null;
+    const pushBalance = (v?: number) => {
+      if (typeof v === 'number' && activeAccount) updateBalance(activeAccount.account_id, v.toFixed(2));
+    };
     const finish = (kind: Toast['kind'], msg: string) => {
       if (settled) return;
       settled = true;
@@ -184,11 +189,40 @@ export default function AiBots() {
         const p = data.proposal as { id: string; ask_price: number };
         ws.send(JSON.stringify({ buy: p.id, price: p.ask_price }));
       } else if (data.buy) {
-        const b = data.buy as { transaction_id: number; balance_after?: number };
-        if (typeof b.balance_after === 'number' && activeAccount) {
-          updateBalance(activeAccount.account_id, b.balance_after.toFixed(2));
+        // Stake debited — reflect immediately, then wait for the contract to settle
+        // so the win/loss payout also reflects (instead of fire-and-forget).
+        const b = data.buy as { contract_id: number; balance_after?: number };
+        pushBalance(b.balance_after);
+        contractId = b.contract_id;
+        showToast('success', `Trade placed (${dir}) — waiting for result…`);
+        ws.send(JSON.stringify({ proposal_open_contract: 1, contract_id: b.contract_id, subscribe: 1 }));
+      } else if (data.proposal_open_contract) {
+        const c = data.proposal_open_contract as {
+          contract_id: number; is_sold?: number; is_expired?: number; status?: string;
+          profit?: number; balance_after?: number;
+        };
+        if (c.contract_id !== contractId) return;
+        const done = !!c.is_sold || !!c.is_expired || (c.status && c.status !== 'open');
+        if (!done) return;
+        const profit = typeof c.profit === 'number' ? c.profit : 0;
+        const won = profit >= 0;
+        const resultMsg = won
+          ? `Won +${profit.toFixed(2)} ${activeAccount.currency}`
+          : `Lost ${profit.toFixed(2)} ${activeAccount.currency}`;
+        // POC doesn't reliably carry balance_after. If present, push and finish.
+        // Otherwise fetch a one-shot balance first and finish in its handler, so
+        // we don't close the socket before the balance response arrives.
+        if (typeof c.balance_after === 'number') {
+          pushBalance(c.balance_after);
+          finish(won ? 'success' : 'error', resultMsg);
+        } else {
+          pendingResult = { kind: won ? 'success' : 'error', msg: resultMsg };
+          ws.send(JSON.stringify({ balance: 1 }));
         }
-        finish('success', `Trade placed (${dir}) — #${b.transaction_id}`);
+      } else if (data.balance) {
+        const bal = data.balance as { balance?: number };
+        pushBalance(bal.balance);
+        if (pendingResult) finish(pendingResult.kind, pendingResult.msg);
       }
     };
   };
