@@ -10,7 +10,7 @@ describe('buildProposal', () => {
     const p = buildProposal({ stake: 10, currency: 'USD', symbol: 'R_100', duration: 5, preset: over5 });
     expect(p).toMatchObject({
       proposal: 1, amount: 10, basis: 'stake', contract_type: 'DIGITOVER',
-      currency: 'USD', symbol: 'R_100', duration: 5, duration_unit: 't', barrier: '5',
+      currency: 'USD', underlying_symbol: 'R_100', duration: 5, duration_unit: 't', barrier: '5',
     });
   });
   it('omits barrier for even/odd', () => {

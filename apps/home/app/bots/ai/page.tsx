@@ -176,7 +176,7 @@ export default function AiBots() {
           basis: 'stake',
           contract_type: dir === 'RISE' ? 'CALL' : 'PUT',
           currency: activeAccount.currency,
-          symbol,
+          underlying_symbol: symbol,
           duration: durationToMinutes(pred.timeframe),
           duration_unit: 'm',
         }));

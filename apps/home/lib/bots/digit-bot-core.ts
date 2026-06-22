@@ -22,7 +22,7 @@ export function buildProposal(args: ProposalArgs): Record<string, unknown> {
     basis: 'stake',
     contract_type: preset.contractType,
     currency,
-    symbol,
+    underlying_symbol: symbol,
     duration,
     duration_unit: 't',
   };
