@@ -57,7 +57,10 @@ export default function InbuiltBots() {
     botRef.current = runDigitBot({
       wsUrl, symbol, stake: cleanStake, duration: dur, currency: activeAccount.currency, preset,
       stops: { takeProfit: numOrUndef(takeProfit), stopLoss: numOrUndef(stopLoss), maxRuns: numOrUndef(maxRuns) },
-      onUpdate: (s) => setStatus(s),
+      onUpdate: (s, balanceAfter) => {
+        setStatus(s);
+        if (balanceAfter && activeAccount) updateBalance(activeAccount.account_id, balanceAfter);
+      },
       onStop: (reason, balanceAfter) => {
         setRunning(false);
         setStatus((prev) => (prev ? { ...prev, state: 'stopped' } : prev));

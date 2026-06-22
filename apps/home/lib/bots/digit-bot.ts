@@ -16,7 +16,8 @@ export interface RunDigitBotOpts {
   currency: string;
   preset: DigitPreset;
   stops: StopConditions;
-  onUpdate: (s: BotState) => void;
+  /** fires after each settled trade; balanceAfter is the account balance if known. */
+  onUpdate: (s: BotState, balanceAfter?: string) => void;
   /** reason + the account balance after the last settled trade (if known). */
   onStop: (reason: string, balanceAfter?: string) => void;
 }
@@ -84,7 +85,7 @@ export function runDigitBot(opts: RunDigitBotOpts): { stop: () => void } {
       runs += 1;
       sessionPnl += profit;
       currentContractId = null;
-      opts.onUpdate({ runs, sessionPnl, lastProfit: profit, state: 'running' });
+      opts.onUpdate({ runs, sessionPnl, lastProfit: profit, state: 'running' }, lastBalance);
 
       const reason = cancelled ? 'Stopped' : evalStop({ runs, sessionPnl }, opts.stops);
       if (reason) { finish(reason); return; }
