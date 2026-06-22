@@ -71,7 +71,7 @@ function parseAnalysis(text: string): Prediction {
 }
 
 export default function AiBots() {
-  const { authState, activeAccount, getFreshWsUrl } = useAuthContext();
+  const { authState, activeAccount, getFreshWsUrl, updateBalance } = useAuthContext();
   const isAuthed = authState === 'authenticated';
 
   const [image, setImage] = useState<string | null>(null);
@@ -184,7 +184,10 @@ export default function AiBots() {
         const p = data.proposal as { id: string; ask_price: number };
         ws.send(JSON.stringify({ buy: p.id, price: p.ask_price }));
       } else if (data.buy) {
-        const b = data.buy as { transaction_id: number };
+        const b = data.buy as { transaction_id: number; balance_after?: number };
+        if (typeof b.balance_after === 'number' && activeAccount) {
+          updateBalance(activeAccount.account_id, b.balance_after.toFixed(2));
+        }
         finish('success', `Trade placed (${dir}) — #${b.transaction_id}`);
       }
     };
