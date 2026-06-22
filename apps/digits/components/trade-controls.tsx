@@ -165,8 +165,16 @@ export function TradeControls({
             type="number"
             value={duration}
             onChange={e => {
+              // Allow clearing the field while typing; commit/clamp on blur.
               const val = parseInt(e.target.value, 10);
               if (!isNaN(val)) onDurationChange(val);
+            }}
+            onBlur={e => {
+              const val = parseInt(e.target.value, 10);
+              const clamped = isNaN(val)
+                ? durationLimits.min
+                : Math.min(Math.max(val, durationLimits.min), durationLimits.max);
+              onDurationChange(clamped);
             }}
             min={durationLimits.min}
             max={durationLimits.max}

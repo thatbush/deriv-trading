@@ -134,8 +134,10 @@ export default function AiBots() {
       showToast('error', `Market "${pred.market}" not recognized`);
       return;
     }
-    if (amount < 1) {
-      showToast('error', 'Amount must be at least 1');
+    // Sanitize stake: Deriv rejects NaN/non-finite/zero and excess precision.
+    const stake = Math.round(amount * 100) / 100;
+    if (!Number.isFinite(stake) || stake < 1) {
+      showToast('error', 'Enter a valid amount (min 1)');
       return;
     }
 
@@ -170,7 +172,7 @@ export default function AiBots() {
       if (data.authorize) {
         ws.send(JSON.stringify({
           proposal: 1,
-          amount,
+          amount: stake,
           basis: 'stake',
           contract_type: dir === 'RISE' ? 'CALL' : 'PUT',
           currency: activeAccount.currency,
@@ -283,7 +285,7 @@ export default function AiBots() {
                   type="number"
                   min={1}
                   value={amount}
-                  onChange={(e) => setAmount(Number(e.target.value))}
+                  onChange={(e) => { const n = Number(e.target.value); setAmount(Number.isFinite(n) ? n : 0); }}
                   className="mt-1 w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2"
                 />
               </label>
