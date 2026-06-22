@@ -17,11 +17,9 @@ export interface RunDigitBotOpts {
   preset: DigitPreset;
   stops: StopConditions;
   onUpdate: (s: BotState) => void;
-  onStop: (reason: string) => void;
+  /** reason + the account balance after the last settled trade (if known). */
+  onStop: (reason: string, balanceAfter?: string) => void;
 }
-
-const APP_ID = '65715';
-void APP_ID;
 
 export function runDigitBot(opts: RunDigitBotOpts): { stop: () => void } {
   const ws = new WebSocket(opts.wsUrl);
@@ -30,11 +28,12 @@ export function runDigitBot(opts: RunDigitBotOpts): { stop: () => void } {
   let runs = 0;
   let sessionPnl = 0;
   let currentContractId: number | null = null;
+  let lastBalance: string | undefined;
 
   const finish = (reason: string) => {
     if (finished) return;
     finished = true;
-    opts.onStop(reason);
+    opts.onStop(reason, lastBalance);
     try { ws.close(); } catch { /* noop */ }
   };
 
@@ -66,7 +65,8 @@ export function runDigitBot(opts: RunDigitBotOpts): { stop: () => void } {
       return;
     }
     if (data.buy) {
-      const b = data.buy as { contract_id: number };
+      const b = data.buy as { contract_id: number; balance_after?: number };
+      if (typeof b.balance_after === 'number') lastBalance = b.balance_after.toFixed(2);
       currentContractId = b.contract_id;
       ws.send(JSON.stringify({ proposal_open_contract: 1, contract_id: b.contract_id, subscribe: 1 }));
       return;

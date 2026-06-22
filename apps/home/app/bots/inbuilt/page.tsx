@@ -20,7 +20,7 @@ type Toast = { kind: 'success' | 'error'; msg: string };
 const numOrUndef = (s: string) => (s.trim() === '' ? undefined : Number(s));
 
 export default function InbuiltBots() {
-  const { authState, activeAccount, getFreshWsUrl } = useAuthContext();
+  const { authState, activeAccount, getFreshWsUrl, updateBalance } = useAuthContext();
   const isAuthed = authState === 'authenticated';
 
   const [preset, setPreset] = useState<DigitPreset>(INBUILT_PRESETS[0]);
@@ -58,9 +58,10 @@ export default function InbuiltBots() {
       wsUrl, symbol, stake: cleanStake, duration: dur, currency: activeAccount.currency, preset,
       stops: { takeProfit: numOrUndef(takeProfit), stopLoss: numOrUndef(stopLoss), maxRuns: numOrUndef(maxRuns) },
       onUpdate: (s) => setStatus(s),
-      onStop: (reason) => {
+      onStop: (reason, balanceAfter) => {
         setRunning(false);
         setStatus((prev) => (prev ? { ...prev, state: 'stopped' } : prev));
+        if (balanceAfter && activeAccount) updateBalance(activeAccount.account_id, balanceAfter);
         showToast(reason.startsWith('Error') || reason.includes('loss') ? 'error' : 'success', reason);
       },
     });
